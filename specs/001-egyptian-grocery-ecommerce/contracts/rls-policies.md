@@ -231,6 +231,24 @@ it is worth nothing if anyone can edit it.
 
 ---
 
+## `report_exports`
+
+```sql
+ALTER TABLE report_exports ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY report_exports_admin_read ON report_exports
+  FOR SELECT TO authenticated USING (is_admin());
+-- No INSERT/UPDATE/DELETE policy: rows are written by the SECURITY DEFINER
+-- export path only, so the record of what left the system cannot be edited
+-- by whoever exported it.
+```
+
+Report functions themselves are protected by their own guards rather than by table policies:
+the staff-visible functions have no cost column in their return type, and the two admin-only
+functions (`report_product_margin`, `report_profit_by_day`) call `is_admin()` and **raise** for
+any other caller. Raising rather than returning empty matters — an empty result is
+indistinguishable from an empty date range, so silence would enforce nothing (FR-078, SC-018).
+
 ## `login_attempts` and `admin_audit_log`
 
 ```sql
@@ -290,7 +308,11 @@ JWT for the stated role, not with the service role.
 | 18 | Anonymous | `SELECT` future-dated promotion | 0 rows |
 | 19 | Customer A | `SELECT` from `login_attempts` | permission denied |
 | 20 | Staff | `SELECT` from `admin_audit_log` | permission denied |
+| 21 | Staff | Call `report_product_margin()` | raises `not_authorized` |
+| 22 | Staff | Call `report_profit_by_day()` | raises `not_authorized` |
+| 23 | Customer A | Call any `report_*` function | raises `not_authorized` |
+| 24 | Staff | `SELECT` from `report_exports` | permission denied |
 
-Assertions 1–8 back SC-007 and SC-008 directly. Assertions 9–11 are what make Principle I
+Assertions 1–8 back SC-007 and SC-008 directly; 21–24 extend SC-008 to the reporting surface, where exports serialize whatever the query returned. Assertions 9–11 are what make Principle I
 enforceable rather than aspirational: even with a valid session and a crafted request, there is
 no way to write a price the database did not compute.

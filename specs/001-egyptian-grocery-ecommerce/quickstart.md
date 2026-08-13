@@ -130,7 +130,43 @@ UPDATE order_status_history SET to_status = 'delivered' WHERE id = '<any>';
 -- Expected: denied for every role including admin. No UPDATE policy exists.
 ```
 
-### 4. Concurrency (SC-016)
+### 4. Report accuracy and margin isolation (SC-017, SC-018)
+
+```bash
+npm run test:sql -- reporting.test.sql
+npm run test:sql -- reporting-authz.test.sql
+npm run test:integration -- report-export
+```
+
+**Expected**: every aggregate reconciles exactly against the orders behind it, and margin data
+is unreachable by staff. The cases that catch real bugs:
+
+```sql
+-- Deliver one order at 23:50 and another at 00:10 Cairo time, then:
+SELECT * FROM report_sales_by_day('2026-08-13', '2026-08-14');
+-- Expected: each lands on its own Cairo day. Grouping by UTC would push the
+-- 23:50 order into the next day and no daily total would match the till.
+
+-- As staff:
+SELECT * FROM report_product_margin('2026-08-01', '2026-08-31');
+-- Expected: raises not_authorized. Not an empty set — an empty set is
+-- indistinguishable from an empty date range, and enforces nothing.
+```
+
+Verify the export encoding by hand once — it is the detail most likely to be silently wrong:
+
+```bash
+curl -s '<host>/api/reports/sales-by-product/export?format=csv&from=2026-08-01&to=2026-08-31' \
+  | head -c 3 | xxd
+# Expected: 00000000: efbb bf
+```
+
+Those three bytes are the UTF-8 byte-order mark. Without them, Excel on Windows opens the file
+in the system codepage and every Arabic product name becomes mojibake — the export is worthless
+to the people who need it. Open one file in Excel and confirm Arabic renders before calling this
+done.
+
+### 5. Concurrency (SC-016)
 
 ```bash
 npm run test:integration -- concurrent-order

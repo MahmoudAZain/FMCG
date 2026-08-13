@@ -23,18 +23,19 @@ Planned with [GitHub Spec Kit](https://github.com/github/spec-kit). Read in this
 | Document | What it covers |
 |---|---|
 | [Constitution](.specify/memory/constitution.md) | The seven non-negotiable principles governing every change |
-| [Specification](specs/001-egyptian-grocery-ecommerce/spec.md) | 6 user stories, 69 functional requirements, 16 success criteria |
-| [Research](specs/001-egyptian-grocery-ecommerce/research.md) | 16 technical decisions with rationale and rejected alternatives |
-| [Data model](specs/001-egyptian-grocery-ecommerce/data-model.md) | 14 tables, RLS summary, state machine |
+| [Specification](specs/001-egyptian-grocery-ecommerce/spec.md) | 7 user stories, 85 functional requirements, 21 success criteria |
+| [Research](specs/001-egyptian-grocery-ecommerce/research.md) | 20 technical decisions with rationale and rejected alternatives |
+| [Data model](specs/001-egyptian-grocery-ecommerce/data-model.md) | 15 tables, RLS summary, state machine, report functions |
 | [Plan](specs/001-egyptian-grocery-ecommerce/plan.md) | Architecture, structure, build order, risks |
-| [Tasks](specs/001-egyptian-grocery-ecommerce/tasks.md) | 104 tasks across 6 phases |
+| [Tasks](specs/001-egyptian-grocery-ecommerce/tasks.md) | 126 tasks across 7 phases |
 | [Quickstart](specs/001-egyptian-grocery-ecommerce/quickstart.md) | Setup, verification, deployment |
 
 Contracts: [RPC functions](specs/001-egyptian-grocery-ecommerce/contracts/rpc-contracts.md) ·
 [RLS policies](specs/001-egyptian-grocery-ecommerce/contracts/rls-policies.md) ·
+[Reporting](specs/001-egyptian-grocery-ecommerce/contracts/reporting-contracts.md) ·
 [Routes and actions](specs/001-egyptian-grocery-ecommerce/contracts/routes-and-actions.md)
 
-## The four decisions that shape everything
+## The decisions that shape everything
 
 1. **Orders have no `INSERT` policy for any role.** The only way an order comes into existence
    is `place_order()`, a `SECURITY DEFINER` function that recomputes every amount from stored
@@ -58,18 +59,20 @@ Contracts: [RPC functions](specs/001-egyptian-grocery-ecommerce/contracts/rpc-co
 | Stage | Delivers |
 |---|---|
 | 1. Foundation | Next.js on Workers, Supabase project, RTL shell, CI |
-| 2. Data layer | 14 tables, RLS, pricing and order functions, tests |
+| 2. Data layer | 15 tables, RLS, pricing and order functions, tests |
 | 3. Storefront 🎯 | Register, browse, cart, checkout — **MVP, real orders** |
 | 4. Admin | Products, categories, brands, promotions, cities |
 | 5. Order operations | Staff queue and transitions; customer tracking |
-| 6. Discovery | Arabic/English search, offers, scheduled jobs, hardening |
+| 6. Reporting | Dashboard, sales/customer/promotion reports, CSV and Excel export |
+| 7. Discovery | Arabic/English search, offers, scheduled jobs, hardening |
 
 Stage 2 precedes all UI because the correctness and isolation guarantees are database-resident.
-Stages 3 and 4 can run in parallel.
+Stages 3 and 4 can run in parallel. Stage 6 follows stage 5 because there is nothing to report
+until orders run their full lifecycle.
 
 ## Known risk
 
-The Supabase free tier provides **no backups**. A weekly export job is planned (T095), but a
+The Supabase free tier provides **no backups**. A weekly export job is planned (T117), but a
 catastrophic loss is recoverable only to the last export. Point-in-time recovery requires the
 $25/month Pro tier — a business decision, recorded here rather than made silently.
 

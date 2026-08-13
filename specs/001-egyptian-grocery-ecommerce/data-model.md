@@ -468,6 +468,97 @@ Records staff-mediated password resets (FR-016) and other privileged administrat
 
 ---
 
+## Reporting
+
+Reporting adds **no new fact tables** — every figure derives from `orders`, `order_items`,
+`profiles` and `product_costs` already captured. What it adds is one timestamp, a set of
+indexes, and a family of aggregate functions (research R17).
+
+### Additions to `orders`
+
+| Column | Type | Notes |
+|---|---|---|
+| `delivered_at` | `timestamptz` | NULL until the order reaches `delivered`; set by `set_order_status` |
+| `cancelled_at` | `timestamptz` | NULL until cancelled |
+
+These exist so revenue can be attributed to the day money was actually collected rather than the
+day the order was placed (FR-072). Both are written inside `set_order_status`, in the same
+transaction as the history row, so they cannot drift from the status.
+
+### Reporting indexes
+
+```sql
+CREATE INDEX orders_delivered_idx  ON orders (delivered_at) WHERE status = 'delivered';
+CREATE INDEX orders_placed_idx     ON orders (placed_at);
+CREATE INDEX orders_city_date_idx  ON orders (city_id, placed_at);
+CREATE INDEX order_items_prod_idx  ON order_items (product_id);
+```
+
+### Date bucketing
+
+One shared expression, defined once and used by every report (research R18):
+
+```sql
+CREATE OR REPLACE FUNCTION public.cairo_date(ts timestamptz)
+RETURNS date LANGUAGE sql IMMUTABLE AS $$
+  SELECT (ts AT TIME ZONE 'Africa/Cairo')::date
+$$;
+```
+
+Timestamps stay in UTC; only grouping is localized. Grouping by UTC would move every order
+placed after 22:00 local into the next day, and no daily total would match what staff counted.
+
+### Report functions
+
+All are `STABLE`, take `p_from date, p_to date`, and aggregate in Postgres. They split by role
+rather than suppressing columns (research R20) — a staff-visible function has no cost column in
+its return type at all.
+
+| Function | Role | Returns |
+|---|---|---|
+| `report_summary(from, to)` | staff | revenue, orders, delivered, cancelled, returned, AOV, items sold, cancellation and return rates |
+| `report_sales_by_day(from, to)` | staff | per Cairo day: orders, delivered, revenue, discount, delivery fees |
+| `report_sales_by_product(from, to)` | staff | per product: units, revenue, order count |
+| `report_sales_by_category(from, to)` | staff | per category: units, revenue |
+| `report_sales_by_city(from, to)` | staff | per city: orders, revenue, delivery fees, average basket |
+| `report_customers(from, to)` | staff | new, returning, total; top customers by spend and by order count |
+| `report_promotions(from, to)` | staff | per promotion: orders, revenue, total discount given |
+| `report_low_stock(threshold)` | staff | products at or below the threshold |
+| **`report_product_margin(from, to)`** | **admin** | per product: revenue, **cost, margin, margin %** |
+| **`report_profit_by_day(from, to)`** | **admin** | per Cairo day: revenue, **cost, gross profit** |
+
+The two admin functions guard with `is_admin()` and **raise** rather than returning an empty
+set — an empty result is indistinguishable from a genuinely empty range, and silence is a poor
+way to enforce a security boundary.
+
+**Revenue** counts orders in `delivered` only, attributed to `cairo_date(delivered_at)`.
+Cancelled and returned orders are reported as their own figures, never netted into revenue
+(FR-072).
+
+**Cost basis**: margin uses the cost price current at report time, not a historical cost — the
+system stores one cost per product, not a cost history. This is stated on the report itself so
+nobody mistakes it for audited historical margin. Adding cost history is a later change if the
+business needs it.
+
+### `report_exports` — audit of what left the system
+
+Satisfies FR-085. Exports carry customer contact details and financial totals out of the system,
+which is worth a trace.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` | PK |
+| `actor_id` | `uuid` | NOT NULL, FK → `profiles(id)` |
+| `report_key` | `text` | NOT NULL — which report |
+| `range_from` / `range_to` | `date` | NOT NULL |
+| `format` | `text` | NOT NULL — `csv` or `xlsx` |
+| `row_count` | `integer` | NOT NULL |
+| `created_at` | `timestamptz` | NOT NULL DEFAULT `now()` |
+
+**RLS**: admin reads; inserts only from `SECURITY DEFINER` functions; no updates or deletes.
+
+---
+
 ## State transitions
 
 The permitted `order_status` transitions (FR-045), enforced inside `set_order_status`:

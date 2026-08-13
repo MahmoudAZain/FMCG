@@ -231,6 +231,55 @@ products with an active discount.
 
 ---
 
+### User Story 7 - Owners and managers read the numbers (Priority: P2)
+
+The owner opens a dashboard and sees how the business is doing: revenue for the period, how
+many orders came in and how many were actually delivered, the average basket, which products
+and categories sell, which cities order most, how many customers are new versus returning, and
+how much is being lost to cancellations and returns. They pick a date range, drill into a
+report, and download it as a spreadsheet to work on offline or share with an accountant.
+
+An ordinary staff member can see operational counts — how many orders are waiting, what is out
+for delivery, what is running low on stock — but never cost, margin or profit.
+
+**Why this priority**: The business runs without it — orders still arrive and get delivered —
+but decisions about pricing, stock and promotions are guesswork until someone can see the
+numbers. It ranks alongside order operations rather than above them.
+
+**Independent Test**: With a period of seeded orders across several statuses, cities and
+products, the dashboard totals reconcile exactly against the underlying orders, and a downloaded
+export opens in a spreadsheet with Arabic text rendering correctly.
+
+**Acceptance Scenarios**:
+
+1. **Given** a date range with delivered and cancelled orders, **When** the owner opens the
+   dashboard, **Then** revenue counts delivered orders only, and cancelled and returned orders
+   are excluded from it and reported separately.
+2. **Given** any dashboard figure, **When** it is compared against the individual orders behind
+   it, **Then** the two reconcile exactly.
+3. **Given** a chosen date range, **When** figures are grouped by day, **Then** each day runs
+   from midnight to midnight **Egypt local time**, not by any other clock.
+4. **Given** the dashboard, **When** the owner changes the date range, **Then** every figure,
+   list and chart on the page updates to that range.
+5. **Given** an administrator, **When** they open a product performance report, **Then** they
+   see cost, margin and profit alongside revenue.
+6. **Given** an ordinary staff member, **When** they open the reports area, **Then** they see
+   operational counts only, and no cost, margin or profit figure appears anywhere — including in
+   any file they can download.
+7. **Given** any report on screen, **When** the user downloads it, **Then** the file contains
+   the same rows and totals as the screen for the same date range.
+8. **Given** a downloaded file containing Arabic product names, **When** it is opened in
+   Excel, **Then** the Arabic text displays correctly rather than as unreadable characters.
+9. **Given** a report with no data in the chosen range, **When** it is opened or downloaded,
+   **Then** the user is told the range is empty rather than being given a broken or misleading
+   file.
+10. **Given** a report of several thousand rows, **When** it is downloaded, **Then** the file
+    is produced without the page failing or timing out.
+11. **Given** the dashboard, **When** products fall below a stock threshold, **Then** they are
+    listed so staff can reorder.
+
+---
+
 ### Edge Cases
 
 - **Price changes mid-cart**: a product's price changes between the shopper adding it and
@@ -267,6 +316,20 @@ products with an active discount.
   attributed; they can perform no further transitions.
 - **Very long Arabic address or landmark text**: stored and displayed without truncation
   that would make the address unusable to a driver.
+- **Order delivered near midnight**: an order placed at 23:50 and delivered at 00:10 must fall
+  on the correct business day in reports — day boundaries follow Egypt local time, not UTC, or
+  every daily figure shifts by hours.
+- **Order status changes after a report was read**: a report is a snapshot of the moment it was
+  run. Re-running the same range later may legitimately differ if orders moved status in
+  between, and the report states the moment it was generated.
+- **Product renamed or deleted after selling**: product reports still show what was sold, using
+  the name recorded on the order, so history stays readable.
+- **Staff member downloads a report**: the file contains no cost, margin or profit column at
+  all — not a blanked or zeroed one.
+- **Report range covering a period with no orders**: the user is told the range is empty rather
+  than handed a file with headers and no rows.
+- **Very large date range**: a multi-year range still returns without the page failing, and the
+  user is warned before a very large file is generated.
 - **Shopper on a slow or intermittent connection**: an interrupted order submission does not
   produce a partially recorded order — either the whole order exists or none of it does.
 
@@ -421,6 +484,42 @@ products with an active discount.
   in a single screen or route cannot expose data.
 - **FR-066**: The system MUST NOT expose privileged credentials to the browser.
 
+**Reporting and analytics**
+
+- **FR-070**: The system MUST provide a dashboard summarizing business performance over a
+  user-chosen date range.
+- **FR-071**: The dashboard MUST report, for the chosen range: revenue, order count, average
+  order value, items sold, delivered order count, cancelled order count, returned order count,
+  and the cancellation and return rates.
+- **FR-072**: The system MUST count as revenue only orders that reached *delivered*, and MUST
+  report cancelled and returned orders separately rather than folding them into revenue.
+- **FR-073**: The system MUST group all time-based figures by day, week or month in **Egypt
+  local time**, so that a day's figures match the business day staff worked.
+- **FR-074**: The system MUST report sales broken down by product, category, brand, city and
+  day.
+- **FR-075**: The system MUST report customer figures: new customers, returning customers,
+  total registered customers, and the customers who order most.
+- **FR-076**: The system MUST report promotion performance: orders and revenue attributable to
+  each promotion, and the total discount given.
+- **FR-077**: The system MUST list products below a configurable stock threshold.
+- **FR-078**: The system MUST make cost, margin and profit figures visible **only** to
+  administrators, and MUST exclude them from every report surface and every downloadable file
+  available to any other role.
+- **FR-079**: Users MUST be able to download any report they can see, as CSV and as an Excel
+  file.
+- **FR-080**: Downloaded files MUST render Arabic text correctly when opened in common
+  spreadsheet software.
+- **FR-081**: A downloaded file MUST contain the same rows and totals as the report shown on
+  screen for the same date range and filters.
+- **FR-082**: The system MUST compute all report aggregates on the server from stored order
+  data, never from figures supplied by a client.
+- **FR-083**: The system MUST tell the user when a chosen range contains no data, rather than
+  producing an empty or misleading file.
+- **FR-084**: The system MUST produce report downloads of at least several thousand rows
+  without failing.
+- **FR-085**: The system MUST record report exports containing customer or financial detail in
+  the audit trail, capturing who exported what and when.
+
 **Operation**
 
 - **FR-067**: The system MUST operate within the free service tiers of its hosting and data
@@ -498,6 +597,15 @@ products with an active discount.
   of launching self-service order tracking.
 - **SC-016**: Concurrent orders for the last unit of stock result in exactly one successful
   order in 100% of trials.
+- **SC-017**: Every dashboard and report figure reconciles exactly against the underlying orders
+  in 100% of checks.
+- **SC-018**: Cost, margin and profit figures are absent from every report surface and every
+  downloadable file available to non-administrators, in 100% of attempts.
+- **SC-019**: The dashboard renders a full month of figures within 2 seconds.
+- **SC-020**: A 5,000-row report downloads successfully, and its Arabic text displays correctly
+  when the file is opened in Excel.
+- **SC-021**: An owner can answer "what did we sell last month, and which products led" within
+  60 seconds of opening the dashboard.
 
 ## Assumptions
 
@@ -530,8 +638,17 @@ products with an active discount.
   both languages.
 - **Returns**: A returned order is a state recorded for the record. Refund handling is a cash
   matter settled outside the system.
-- **Reporting**: Beyond the filterable order queue, business analytics and dashboards are out
-  of scope for this release.
+- **Reporting**: A dashboard and downloadable reports are in scope (User Story 7). All figures
+  derive from order data already captured — no separate analytics collection, no page-view or
+  funnel tracking, and no third-party analytics service. Reporting is descriptive: it reports
+  what happened and does not forecast.
+- **Reporting timezone**: All date grouping uses Egypt local time, so a "day" in a report is the
+  business day staff actually worked.
+- **Revenue definition**: Revenue means delivered orders. Orders still in progress are reported
+  separately as booked-but-not-yet-delivered; cancelled and returned orders are reported as
+  losses rather than netted silently into revenue.
+- **Report volume**: Reports cover the business's own order history at the stated scale —
+  thousands of orders per month, not millions of rows.
 - **Staff accounts**: Created by an administrator, not self-registered.
 - **Browsers**: Recent Chrome, Safari and Samsung Internet on Android and iOS, plus current
   desktop browsers. Legacy browsers are out of scope.

@@ -10,13 +10,14 @@ description: "Task list for Egyptian Grocery E-Commerce Platform"
 [data-model.md](data-model.md), [contracts/](contracts/)
 
 **Tests**: Included for the four areas the constitution names as money-or-data critical —
-pricing, order placement, status transitions, and RLS isolation — plus an end-to-end journey.
-Broad presentational unit tests are deliberately not mandated.
+pricing, order placement, status transitions, and RLS isolation — plus report accuracy and
+margin isolation, and an end-to-end journey. Broad presentational unit tests are deliberately
+not mandated.
 
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel — different files, no dependency on another incomplete task
-- **[Story]**: The user story this serves (US1–US6), or blank for shared infrastructure
+- **[Story]**: The user story this serves (US1–US7), or blank for shared infrastructure
 
 ## Path Conventions
 
@@ -131,7 +132,7 @@ before this phase passes its tests.
       rollback (SC-005, SC-006)
 - [ ] T034 [P] `supabase/tests/transitions.test.sql` — table-driven over every legal and illegal
       transition, plus the customer-cancel authorization boundary (SC-011)
-- [ ] T035 [P] `supabase/tests/rls.test.sql` — all 20 assertions from the verification matrix,
+- [ ] T035 [P] `supabase/tests/rls.test.sql` — assertions 1–20 of the verification matrix,
       run under real customer, staff and admin JWTs (SC-007, SC-008)
 - [ ] T036 `tests/integration/concurrent-order.test.ts` — two simultaneous orders for the last
       unit; exactly one succeeds, stock never negative (SC-016)
@@ -295,43 +296,126 @@ customer cancels while submitted but is refused once confirmed.
 
 ---
 
-## Phase 6: User Story 6 & Hardening (Priority: P3)
+## Phase 6: User Story 7 — Reporting & Dashboard (Priority: P2)
+
+**Goal**: The owner reads the business's numbers and downloads them as a spreadsheet; ordinary
+staff see operations without ever seeing margin.
+
+**Independent Test**: Over a seeded period of orders across several statuses, cities and
+products, every dashboard figure reconciles exactly against the underlying orders, and a
+downloaded file opens in Excel with Arabic rendering correctly.
+
+*Depends on Phase 5 — there is nothing to report until orders run their full lifecycle and
+`delivered_at` is being set.*
+
+### Data layer
+
+- [ ] T087 Migration `0012_reporting.sql` part 1: add `orders.delivered_at` and
+      `orders.cancelled_at`, set inside `set_order_status` in the same transaction as the history
+      row so they cannot drift from the status (FR-072)
+- [ ] T088 Migration `0012` part 2: the reporting indexes on `orders(delivered_at)`,
+      `orders(placed_at)`, `orders(city_id, placed_at)` and `order_items(product_id)` (SC-019)
+- [ ] T089 Migration `0012` part 3: `cairo_date(ts)` — the single shared Egypt-local bucketing
+      expression every report uses (FR-073, research R18)
+- [ ] T090 [P] Migration `0012` part 4: `report_summary`, `report_sales_by_day`,
+      `report_sales_by_product`, `report_sales_by_category`, `report_sales_by_city` (FR-071,
+      FR-074)
+- [ ] T091 [P] Migration `0012` part 5: `report_customers`, `report_promotions`,
+      `report_low_stock` (FR-075, FR-076, FR-077)
+- [ ] T092 Migration `0012` part 6: the **admin-only** `report_product_margin` and
+      `report_profit_by_day`, each guarding with `is_admin()` and **raising** rather than
+      returning empty (FR-078, research R20)
+- [ ] T093 Migration `0012` part 7: the `report_exports` audit table with RLS — admin read,
+      inserts from `SECURITY DEFINER` only, no updates or deletes (FR-085)
+
+### Dashboard and reports
+
+- [ ] T094 [US7] `src/app/[locale]/admin/page.tsx` — dashboard: summary tiles, sales trend,
+      top products, low stock, shared date-range control (FR-070)
+- [ ] T095 [P] [US7] `src/components/admin/DateRangePicker.tsx` with Cairo-local presets —
+      today, this week, this month, last month, custom (FR-073)
+- [ ] T096 [P] [US7] `src/components/admin/StatTile.tsx` and `SalesChart.tsx` — legible in both
+      directions and at 360px
+- [ ] T097 [US7] `src/app/[locale]/admin/reports/sales/page.tsx` — by day, product, category
+      and city (FR-074)
+- [ ] T098 [P] [US7] `src/app/[locale]/admin/reports/customers/page.tsx` — new, returning, top
+      customers (FR-075)
+- [ ] T099 [P] [US7] `src/app/[locale]/admin/reports/promotions/page.tsx` — promotion
+      performance from the promotion recorded at placement (FR-076)
+- [ ] T100 [P] [US7] `src/app/[locale]/admin/reports/inventory/page.tsx` — low stock, with
+      stock valuation admin-only (FR-077)
+- [ ] T101 [US7] `src/app/[locale]/admin/reports/profit/page.tsx` — **admin only**, absent from
+      the staff navigation, stating on its face that margin uses current cost (FR-078)
+
+### Export
+
+- [ ] T102 [US7] `src/lib/reports/csv.ts` — RFC 4180 writer emitting **UTF-8 with a BOM**, with
+      the formula-injection guard on values starting `=`, `+`, `-`, `@`, and piastres rendered as
+      decimal EGP (FR-079, FR-080, research R19)
+- [ ] T103 [US7] `src/app/api/reports/[key]/export/route.ts` — role check, calls the same
+      function the screen calls, empty-range marker, `report_exports` audit row, streamed
+      attachment (FR-081, FR-083, FR-085)
+- [ ] T104 [US7] `src/lib/reports/xlsx.ts` — browser-side workbook generation via dynamic import
+      on the reports route only, with real number formats and RTL sheet direction; never imported
+      by a storefront route (FR-079, research R19)
+- [ ] T105 [P] [US7] Localized report labels and bilingual export headers in `ar.json` / `en.json`
+
+### Tests ⚠️
+
+- [ ] T106 [P] [US7] `supabase/tests/reporting.test.sql` — figures reconcile exactly against
+      the underlying orders; cancelled and returned excluded from revenue; an order delivered at
+      00:10 and one at 23:50 Cairo land on the correct days; a range spanning a summer-time
+      transition stays correct (SC-017, FR-072, FR-073)
+- [ ] T107 [P] [US7] `supabase/tests/reporting-authz.test.sql` — staff calling
+      `report_product_margin` raises `not_authorized`; no staff-visible function has a cost,
+      margin or profit column in its return type (SC-018)
+- [ ] T108 [US7] `tests/integration/report-export.test.ts` — export matches the screen for the
+      same range; CSV begins `EF BB BF` and Arabic survives a round trip; a product named
+      `=SUM(A1:A9)` is written escaped; an empty range returns the marker; 5,000 rows complete
+      (FR-081, FR-084, SC-020)
+
+**Checkpoint**: The owner can answer "what did we sell last month, and which products led" in
+under a minute, and hand the accountant a spreadsheet.
+
+---
+
+## Phase 7: User Story 6 & Hardening (Priority: P3)
 
 **Goal**: Discovery, performance, and the operational jobs the free tier requires.
 
 ### Search and offers (US6)
 
-- [ ] T087 [P] [US6] `src/components/catalog/SearchBox.tsx` with debounced input
-- [ ] T088 [US6] `src/app/[locale]/search/page.tsx` — trigram search over the normalized column,
+- [ ] T109 [P] [US6] `src/components/catalog/SearchBox.tsx` with debounced input
+- [ ] T110 [US6] `src/app/[locale]/search/page.tsx` — trigram search over the normalized column,
       with an empty-state offering a route back to category browsing (FR-019)
-- [ ] T089 [P] [US6] `src/app/[locale]/offers/page.tsx` — all currently discounted products
+- [ ] T111 [P] [US6] `src/app/[locale]/offers/page.tsx` — all currently discounted products
       (FR-020)
-- [ ] T090 [US6] Incremental loading for listings that preserves scroll position (FR-023)
-- [ ] T091 [US6] `tests/integration/search.test.ts` — the same product found by its Arabic and
+- [ ] T112 [US6] Incremental loading for listings that preserves scroll position (FR-023)
+- [ ] T113 [US6] `tests/integration/search.test.ts` — the same product found by its Arabic and
       English names, and found despite diacritics and alef/ta-marbuta variants (SC-004)
 
 ### Operations
 
-- [ ] T092 [P] `src/app/api/cron/keepalive/route.ts` plus the 6-hourly `wrangler.jsonc` trigger,
+- [ ] T114 [P] `src/app/api/cron/keepalive/route.ts` plus the 6-hourly `wrangler.jsonc` trigger,
       preventing free-tier pausing (FR-069)
-- [ ] T093 [P] Daily `login_attempts` sweep, bounding the table
-- [ ] T094 [P] Weekly orphan-image sweep reclaiming unreferenced storage objects
-- [ ] T095 **Weekly data export job** — the free tier has no backups, so this is the only
+- [ ] T115 [P] Daily `login_attempts` sweep, bounding the table
+- [ ] T116 [P] Weekly orphan-image sweep reclaiming unreferenced storage objects
+- [ ] T117 **Weekly data export job** — the free tier has no backups, so this is the only
       recovery point (research R13; flagged as a risk in [plan.md](plan.md#risks-and-mitigations))
-- [ ] T096 [P] Storage-usage monitoring with a warning at 700 MB of the 1 GB ceiling
+- [ ] T118 [P] Storage-usage monitoring with a warning at 700 MB of the 1 GB ceiling
 
 ### Performance and polish
 
-- [ ] T097 [P] Image loading pass: explicit dimensions, `sizes` matched to the mobile grid,
+- [ ] T119 [P] Image loading pass: explicit dimensions, `sizes` matched to the mobile grid,
       lazy loading below the fold (Principle IV)
-- [ ] T098 [P] Bundle audit against the 150 KB compressed budget for storefront routes
-- [ ] T099 Lighthouse mobile run throttled to 3G, verifying SC-003 on the category listing
-- [ ] T100 [P] RTL and LTR visual review of every route at 360px, asserting no horizontal
+- [ ] T120 [P] Bundle audit against the 150 KB compressed budget for storefront routes
+- [ ] T121 Lighthouse mobile run throttled to 3G, verifying SC-003 on the category listing
+- [ ] T122 [P] RTL and LTR visual review of every route at 360px, asserting no horizontal
       overflow (SC-012)
-- [ ] T101 [P] Localized error and empty states across all flows, both languages
-- [ ] T102 [P] Accessibility pass — focus order under RTL, labels, and contrast
-- [ ] T103 Verify `SUPABASE_SERVICE_ROLE_KEY` is absent from the built client bundle (FR-066)
-- [ ] T104 Complete the post-deploy checklist in [quickstart.md](quickstart.md#post-deploy-checklist)
+- [ ] T123 [P] Localized error and empty states across all flows, both languages
+- [ ] T124 [P] Accessibility pass — focus order under RTL, labels, and contrast
+- [ ] T125 Verify `SUPABASE_SERVICE_ROLE_KEY` is absent from the built client bundle (FR-066)
+- [ ] T126 Complete the post-deploy checklist in [quickstart.md](quickstart.md#post-deploy-checklist)
 
 **Checkpoint**: Ready for production traffic.
 
@@ -345,9 +429,14 @@ Phase 1 (Setup)
 Phase 2 (Data layer)  ← BLOCKS EVERYTHING; must pass T032–T036
     ↓
     ├──► Phase 3 (US1+US2 — MVP) ──┐
-    │                              ├──► Phase 5 (US4+US5) ──► Phase 6
-    └──► Phase 4 (US3 — Admin) ────┘
+    │                              ├──► Phase 5 (US4+US5) ──► Phase 6 (US7 — Reporting)
+    └──► Phase 4 (US3 — Admin) ────┘                                  ↓
+                                                              Phase 7 (US6 + hardening)
 ```
+
+Phase 6 sits after Phase 5 because reporting reports on what Phase 5 produces — `delivered_at`
+is only meaningful once staff are marking orders delivered, and revenue is defined as delivered
+orders. Phase 7 depends only on Phase 3 and may overtake Phase 6 if search becomes urgent.
 
 **Parallel opportunities**
 
@@ -356,7 +445,9 @@ Phase 2 (Data layer)  ← BLOCKS EVERYTHING; must pass T032–T036
   other and can be written concurrently once their targets exist.
 - Phases 3 and 4 may run concurrently on separate tracks after Phase 2 — they share only the
   primitives in T037–T040, which should land first.
-- Phase 6: nearly every task is independent.
+- Phase 6: report functions T090 and T091 are independent of each other; report pages T095–T100
+  are independent once the date-range control lands.
+- Phase 7: nearly every task is independent.
 
 **Critical path to first revenue**: T001 → T002 → T006 → T008 → T009 → T013–T031 → T032–T036 →
 T037–T040 → T041–T047 → T048–T062. Everything else can follow.
@@ -370,8 +461,9 @@ T037–T040 → T041–T047 → T048–T062. Everything else can follow.
 | 3 — Storefront | T037–T062 (26) | US1, US2 | 🎯 MVP — real orders |
 | 4 — Admin | T063–T077 (15) | US3 | Staff-run catalog |
 | 5 — Operations | T078–T086 (9) | US4, US5 | Lifecycle + tracking |
-| 6 — Discovery | T087–T104 (18) | US6 | Search, jobs, hardening |
-| **Total** | **104** | | |
+| 6 — Reporting | T087–T108 (22) | US7 | Dashboard, reports, CSV/Excel export |
+| 7 — Discovery | T109–T126 (18) | US6 | Search, jobs, hardening |
+| **Total** | **126** | | |
 
 ## Independent Test Criteria
 
@@ -386,3 +478,6 @@ Each story is verifiable on its own, which is what makes the phases genuinely se
   submitted, refused once confirmed.
 - **US6** — seeded catalog: the same product found by Arabic and English terms; offers view
   lists exactly the active discounts.
+- **US7** — a seeded period of orders: every dashboard figure reconciles against the orders
+  behind it; a staff export contains no margin column; an admin export does; the CSV opens in
+  Excel with Arabic intact.
