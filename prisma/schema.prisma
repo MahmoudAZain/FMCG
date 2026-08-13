@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Pooled connection used by the app at runtime (serverless-safe).
+  url       = env("DATABASE_URL")
+  // Direct (unpooled) connection used for migrations. If your provider has no
+  // separate direct URL, set DIRECT_URL to the same value as DATABASE_URL.
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  BUYER
+  ADMIN
+}
+
+enum OrderStatus {
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  companyName  String
+  phone        String?
+  role         Role     @default(BUYER)
+  approved     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  orders       Order[]
+}
+
+model Brand {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  products Product[]
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  products Product[]
+}
+
+model Product {
+  id             String      @id @default(cuid())
+  sku            String      @unique
+  name           String
+  brandId        String
+  brand          Brand       @relation(fields: [brandId], references: [id])
+  categoryId     String
+  category       Category    @relation(fields: [categoryId], references: [id])
+  unitsPerCarton Int
+  cartonPrice    Decimal     @db.Decimal(10, 2)
+  stockCartons   Int         @default(0)
+  imageUrl       String?
+  active         Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  orderItems     OrderItem[]
+
+  @@index([brandId])
+  @@index([categoryId])
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  status      OrderStatus @default(PROCESSING)
+  totalAmount Decimal     @db.Decimal(10, 2)
+  createdAt   DateTime    @default(now())
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  order       Order   @relation(fields: [orderId], references: [id])
+  productId   String
+  product     Product @relation(fields: [productId], references: [id])
+  cartons     Int
+  cartonPrice Decimal @db.Decimal(10, 2)
+  productName String
+  sku         String
+}

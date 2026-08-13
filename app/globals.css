@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cream: #f1e8d3;
+  --cream-card: #fbf6e9;
+  --ink: #2a2420;
+  --ink-soft: #5c5347;
+  --green: #3e5c43;
+  --green-dark: #2c4230;
+  --green-pale: #dce5da;
+  --amber: #c68a2a;
+  --amber-dark: #9c6c1e;
+  --amber-pale: #f3e1bc;
+  --brick: #a34a30;
+  --line: #ded0ac;
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1.5px dashed var(--green);
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--green);
+}
