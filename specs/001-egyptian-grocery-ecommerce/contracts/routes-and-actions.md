@@ -39,14 +39,14 @@ re-checks per request; RLS refuses the data regardless (FR-064, FR-065, research
 | Route | Minimum role | Purpose | Requirements |
 |---|---|---|---|
 | `/admin` | staff | Dashboard: order counts by state | FR-058 |
-| `/admin/orders` | staff | Queue with filters by state, city, date; search by reference or phone | FR-058 |
+| `/admin/orders` | staff | Queue with filters by state, governorate, date; search by reference or phone | FR-058 |
 | `/admin/orders/[id]` | staff | Detail, status transitions, history timeline | FR-044–FR-049 |
 | `/admin/products` | admin | Product list with stock and status | FR-051 |
 | `/admin/products/new`, `/admin/products/[id]` | admin | Full product form, both languages, photos, cost | FR-051, FR-054, FR-059 |
 | `/admin/categories` | admin | Tree management, reorder, activate | FR-053 |
 | `/admin/brands` | admin | Brand management | FR-053 |
 | `/admin/promotions` | admin | Promotions with scope and date range | FR-055 |
-| `/admin/cities` | admin | Cities with fee and minimum order value | FR-056 |
+| `/admin/governorates` | admin | All 27 Egyptian governorates with fee, minimum order value and an activate toggle | FR-056, FR-056a |
 | `/admin/staff` | admin | Staff accounts, roles, password reset | FR-016, FR-060 |
 
 **The staff/admin split** exists because FR-060 requires ordinary staff to process orders
@@ -64,7 +64,7 @@ database, and **no action accepts a price, discount, fee or total from the clien
 
 | Action | Input | Notes |
 |---|---|---|
-| `registerCustomer` | name, phone, city, address, landmark, password, locale | Contract in [rpc-contracts.md](rpc-contracts.md). Compensating delete on partial failure |
+| `registerCustomer` | name, phone, governorate, address, landmark, password, locale | Contract in [rpc-contracts.md](rpc-contracts.md). Compensating delete on partial failure |
 | `loginCustomer` | phone, password | Rate-limited per phone (FR-014); identical message for unknown number and wrong password |
 | `logout` | — | Clears the session cookie |
 
@@ -72,7 +72,7 @@ database, and **no action accepts a price, discount, fee or total from the clien
 
 | Action | Input | Calls | Requirements |
 |---|---|---|---|
-| `previewCart` | `[{product_id, qty}]`, `city_id` | `price_cart` | FR-025 |
+| `previewCart` | `[{product_id, qty}]`, `governorate_id` | `price_cart` | FR-025 |
 | `placeOrder` | `[{product_id, qty}]`, `address_id`, `idempotency_key`, `note?` | `place_order` | FR-025, FR-037, FR-038 |
 | `cancelMyOrder` | `order_id` | `set_order_status(..., 'cancelled')` | FR-048 |
 | `addAddress` / `updateAddress` / `deleteAddress` / `setDefaultAddress` | address fields | direct, RLS-scoped | FR-015 |
@@ -98,11 +98,11 @@ generated when the checkout page mounts, so a double-tap or a resubmit produces 
 | `createCategory` / `updateCategory` / `reorderCategories` | FR-053 |
 | `createBrand` / `updateBrand` | FR-053 |
 | `createPromotion` / `updatePromotion` | FR-055 |
-| `createCity` / `updateCity` | FR-056 |
+| `createGovernorate` / `updateGovernorate` | FR-056 |
 | `createStaffAccount` / `updateStaffRole` | FR-060 |
 | `adminResetPassword` | FR-016 — writes `admin_audit_log` |
 
-**Deactivate, never delete** (FR-061): admin actions on categories, brands, products and cities
+**Deactivate, never delete** (FR-061): admin actions on categories, brands, products and governorates
 set `is_active = false` rather than deleting. `ON DELETE RESTRICT` on the foreign keys makes
 this structural — an attempted delete of anything an order references fails at the database.
 

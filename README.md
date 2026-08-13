@@ -63,7 +63,7 @@ Contracts: [RPC functions](specs/001-egyptian-grocery-ecommerce/contracts/rpc-co
 | 1. Foundation | Next.js on Workers, Supabase project, RTL shell, CI |
 | 2. Data layer | 15 tables, RLS, pricing and order functions, tests |
 | 3. Storefront 🎯 | Register, browse, cart, checkout — **MVP, real orders** |
-| 4. Admin | Products, categories, brands, promotions, cities |
+| 4. Admin | Products, categories, brands, promotions, governorates |
 | 5. Order operations | Staff queue and transitions; customer tracking |
 | 6. Reporting | Dashboard, sales/customer/promotion reports, CSV and Excel export |
 | 7. Discovery | Arabic/English search, offers, scheduled jobs, hardening |
@@ -79,6 +79,7 @@ until orders run their full lifecycle.
 | Order flow | Customer creates the order → ops team sees it → confirms by phone → marks confirmed → through to delivered |
 | Backups | **Free tier** plus the weekly export job (T117). Worst case is losing up to a week; revisit when order history becomes critical |
 | SMS verification | **Not needed for v1** — phone plus password, staff-mediated password reset |
+| Delivery coverage | **Cairo and Giza** at launch; all 27 governorates pre-loaded in the admin, activated with a fee and a minimum as coverage grows |
 | Deferred | Delivery time slots, coupon codes, cross-device cart sync — all additive later |
 
 ## Known risk

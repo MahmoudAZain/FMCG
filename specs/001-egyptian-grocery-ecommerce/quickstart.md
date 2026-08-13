@@ -87,7 +87,7 @@ Manual confirmation that the client cannot write a price at all:
 
 ```sql
 -- As an authenticated customer JWT (not the service role):
-INSERT INTO orders (profile_id, city_id, subtotal, grand_total, ...) VALUES (...);
+INSERT INTO orders (profile_id, governorate_id, subtotal, grand_total, ...) VALUES (...);
 -- Expected: new row violates row-level security policy for table "orders"
 -- There is no INSERT policy for any role. This is the guarantee, not a check.
 ```
@@ -188,9 +188,9 @@ Playwright drives the primary journey at a 360px viewport in Arabic:
 1. Land on `/` → redirected to `/ar`, `<html dir="rtl">`.
 2. Browse a category, open a product, confirm both languages and the promotional price.
 3. Add to cart; confirm the total comes from the server.
-4. Register with name, phone, city, address and **landmark** — confirm the form refuses a blank
+4. Register with name, phone, governorate, address and **landmark** — confirm the form refuses a blank
    landmark.
-5. Check out; confirm the delivery fee matches the selected city.
+5. Check out; confirm the delivery fee matches the selected governorate.
 6. Place the order; confirm the reference, the totals and "cash on delivery".
 7. Open order history; confirm the order appears with status *submitted*.
 8. Cancel it; confirm it moves to *cancelled* and the history records the customer as actor.
@@ -240,7 +240,7 @@ npx wrangler secret put CRON_SECRET
 - [ ] Email confirmations **off**; phone provider **disabled**
 - [ ] `product-images` bucket exists, public read, admin write
 - [ ] Bootstrap admin account can sign in at `/ar/admin`
-- [ ] Cities seeded with fees and minimum order values
+- [ ] Governorates seeded with fees and minimum order values
 - [ ] Cron triggers registered and firing
 - [ ] `SUPABASE_SERVICE_ROLE_KEY` absent from the client bundle — verify:
       `npm run build && grep -r "service_role" .open-next/ || echo "clean"`

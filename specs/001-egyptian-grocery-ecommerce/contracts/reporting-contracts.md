@@ -51,10 +51,10 @@ Per product: `product_id, name_ar, name_en, sku, unit, units_sold, revenue, orde
 Names come from the **order line snapshot**, so a product renamed or deactivated after selling
 still reports correctly (Edge Cases).
 
-### `report_sales_by_category(p_from, p_to)` · `report_sales_by_city(p_from, p_to)`
+### `report_sales_by_category(p_from, p_to)` · `report_sales_by_governorate(p_from, p_to)`
 
 Per category: `category_id, name_ar, name_en, units_sold, revenue`.
-Per city: `city_id, name_ar, name_en, orders, revenue, delivery_fees, avg_order_value`.
+Per governorate: `governorate_id, name_ar, name_en, orders, revenue, delivery_fees, avg_order_value`.
 
 ### `report_customers(p_from, p_to)`
 
@@ -105,7 +105,7 @@ wants it.
 |---|---|---|
 | `/[locale]/admin` | staff | Dashboard: summary tiles, sales trend, top products, low stock |
 | `/[locale]/admin/reports` | staff | Report index with the shared date-range control |
-| `/[locale]/admin/reports/sales` | staff | By day, product, category, city |
+| `/[locale]/admin/reports/sales` | staff | By day, product, category, governorate |
 | `/[locale]/admin/reports/customers` | staff | New, returning, top customers |
 | `/[locale]/admin/reports/promotions` | staff | Promotion performance |
 | `/[locale]/admin/reports/inventory` | staff | Low stock and stock valuation *(valuation admin-only)* |

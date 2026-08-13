@@ -123,7 +123,7 @@ attributed to another customer's profile.
 ## Catalog tables
 
 ```sql
--- cities, categories, brands, products: identical shape
+-- governorates, categories, brands, products: identical shape
 CREATE POLICY <t>_public_read ON <t>
   FOR SELECT TO anon, authenticated
   USING (is_active OR is_staff());

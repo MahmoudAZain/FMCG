@@ -10,7 +10,7 @@ A bilingual (Arabic-default, RTL) grocery storefront and staff admin console for
 market, capturing cash-on-delivery orders for an in-house fleet. Customers register with a
 phone number and password — no SMS, no email — browse a bilingual catalog, and place orders
 whose every price is computed by the database. Staff run the catalog, promotions and delivery
-cities from the admin console and move orders through a fixed lifecycle with a tamper-proof
+governorates from the admin console and move orders through a fixed lifecycle with a tamper-proof
 audit trail.
 
 **Technical approach**: Next.js 15 App Router deployed to Cloudflare Workers via
@@ -70,7 +70,7 @@ functions
 | III | Bilingual & RTL by Construction | Paired `_ar`/`_en` columns, both `NOT NULL`, so the database refuses half-translated master data. `next-intl` with a locale segment; `dir` server-rendered on `<html>`. Tailwind logical properties only, enforced by lint rule. Language switch preserves cart (`localStorage`) and position. | **PASS** |
 | IV | Mobile-First on Egyptian Mobile Data | 360px-first design; server-rendered first paint; WebP imagery resized in-browser to 1200px with 400px thumbs; lazy loading below the fold; 44px touch targets; JS budget under 150 KB compressed. | **PASS** |
 | V | Zero-Cost Operations | Supabase + Cloudflare free tiers only. No SMS gateway, no email provider, no payment gateway, no image CDN, no external search service. Cron keep-alive prevents free-tier pausing. Storage bounded by client-side resizing and a 4-photo cap. | **PASS — with one flagged risk, below** |
-| VI | Staff Autonomy Over Master Data | 17 admin routes cover products, categories, brands, promotions, cities, staff, the dashboard and reports. Every field in FR-051 is form-editable. Validation is duplicated into database constraints so a staff mistake cannot corrupt data. | **PASS** |
+| VI | Staff Autonomy Over Master Data | 17 admin routes cover products, categories, brands, promotions, governorates, staff, the dashboard and reports. Every field in FR-051 is form-editable. Validation is duplicated into database constraints so a staff mistake cannot corrupt data. | **PASS** |
 | VII | Auditable Order Lifecycle | Transition table enforced inside `set_order_status()`, not in the UI. Every accepted transition appends a history row with actor and timestamp. No `UPDATE`/`DELETE` policy on history for anyone, including admin. Row locks resolve simultaneous customer-cancel and staff-confirm. | **PASS** |
 
 **Post-Phase-1 re-evaluation**: no principle was weakened by the design. Two points strengthened
@@ -116,7 +116,7 @@ supabase/
 ├── migrations/                    # Versioned SQL — the schema's single source of truth
 │   ├── 0001_extensions_and_enums.sql
 │   ├── 0002_profiles_and_auth.sql
-│   ├── 0003_cities_and_addresses.sql
+│   ├── 0003_governorates_and_addresses.sql
 │   ├── 0004_catalog.sql
 │   ├── 0005_product_costs.sql
 │   ├── 0006_promotions_and_pricing.sql
@@ -126,7 +126,7 @@ supabase/
 │   ├── 0010_search.sql
 │   ├── 0011_storage_buckets.sql
 │   └── 0012_reporting.sql         # delivered_at/cancelled_at, indexes, report functions
-├── seed.sql                       # Cities, categories, brands, bootstrap admin
+├── seed.sql                       # Governorates, categories, brands, bootstrap admin
 └── tests/                         # SQL tests: pricing, placement, transitions, RLS
     ├── pricing.test.sql
     ├── place_order.test.sql
@@ -152,7 +152,7 @@ src/
 │   │       ├── layout.tsx         # Staff gate (convenience; RLS is the boundary)
 │   │       ├── orders/            # Queue + detail + transitions
 │   │       ├── products/          # List + form + photos + cost
-│   │       ├── categories/  brands/  promotions/  cities/  staff/
+│   │       ├── categories/  brands/  promotions/  governorates/  staff/
 │   ├── api/cron/keepalive/route.ts
 │   └── globals.css
 ├── components/
@@ -211,7 +211,7 @@ prerequisites for everything; after them, work can proceed in parallel where not
 | **1. Foundation** | Repo, Next.js on Workers, Supabase project, i18n + RTL shell, Tailwind, CI | — | An Arabic RTL page renders at 360px on a Cloudflare URL |
 | **2. Data layer** | All 14 tables, enums, indexes, RLS policies, pricing and order functions, seed data, SQL tests | 1 | RLS matrix passes; `place_order` creates a correct order from `psql` |
 | **3. Storefront (US1 + US2)** 🎯 **MVP** | Register, sign in, browse, product detail, cart, checkout, place order | 2 | A real person orders on a phone, cash on delivery |
-| **4. Admin master data (US3)** | Products with photos, categories, brands, promotions, cities, staff | 2 (parallel with 3) | Staff add a product and it appears on the storefront |
+| **4. Admin master data (US3)** | Products with photos, categories, brands, promotions, governorates, staff | 2 (parallel with 3) | Staff add a product and it appears on the storefront |
 | **5. Order operations (US4 + US5)** | Staff queue and transitions; customer history, tracking, self-cancel | 3, 4 | An order runs submitted → delivered with a full audit trail |
 | **6. Reporting (US7)** | Dashboard, sales/customer/promotion/inventory reports, profit report, CSV and Excel export | 5 | The owner reads last month's numbers and downloads them as a spreadsheet |
 | **7. Discovery + hardening (US6)** | Search, offers view, pagination, performance, scheduled jobs, backup export | 3 | Arabic and English search return the same product; jobs run |
@@ -238,6 +238,7 @@ Recorded 2026-08-13, so implementation proceeds without re-litigating them.
 | **Backups** | Launch on the **free tier** with the weekly export job; no paid tier for now. | T117 (weekly export) becomes required rather than optional, and is the only recovery point. Worst case is losing up to a week. Revisit when order history becomes something the business would hate to lose. |
 | **SMS verification** | **Not needed for v1**, as originally specified. | Confirms R2: phone plus password over a synthetic internal identifier, no SMS gateway, no self-service password reset. Staff-mediated reset (FR-016) stands. |
 | **Deferred features** | No preference — the v1 boundary stands as drawn. | Delivery time slots, coupon codes and cross-device cart sync stay out of scope. Each is additive later and none constrains the current schema. |
+| **Launch coverage** | **Cairo and Giza** live at launch, with **all 27 Egyptian governorates** pre-loaded in the admin. | Seed carries the full bilingual list; 25 sit inactive until an administrator sets a fee and a minimum and switches them on. Expanding coverage never needs a developer (FR-056a). |
 | **Project name** | **El-Gomala** (الجملة). | The synthetic auth domain becomes `@phone.elgomala.local`. Naming updated across the documents. |
 
 ## Key Design Decisions

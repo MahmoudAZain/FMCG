@@ -73,7 +73,7 @@ before this phase passes its tests.
 - [ ] T014 Migration `0002_profiles_and_auth.sql`: `profiles` table with the Egyptian phone
       CHECK and unique constraint, the `handle_new_user` signup trigger, and the
       `guard_profile_privileged_columns` trigger blocking self-promotion to admin
-- [ ] T015 Migration `0003_cities_and_addresses.sql`: `cities` and `addresses`, with `landmark`
+- [ ] T015 Migration `0003_governorates_and_addresses.sql`: `governorates` and `addresses`, with `landmark`
       `NOT NULL` and the partial unique index for one default address per customer
 - [ ] T016 Migration `0004_catalog.sql`: `categories` (self-referencing, cycle-guard trigger,
       depth cap 3), `brands`, `products` with every FR-051 attribute, and `product_photos` with
@@ -90,7 +90,7 @@ before this phase passes its tests.
 
 - [ ] T020 Migration `0008_order_functions.sql` part 1: `normalize_phone()` and
       `search_normalize()` — Arabic diacritic stripping and orthographic folding (research R10)
-- [ ] T021 Migration `0008` part 2: `price_cart(p_items jsonb, p_city_id uuid)` returning lines,
+- [ ] T021 Migration `0008` part 2: `price_cart(p_items jsonb, p_governorate_id uuid)` returning lines,
       totals, fee and blocking issues (contract in
       [contracts/rpc-contracts.md](contracts/rpc-contracts.md))
 - [ ] T022 Migration `0008` part 3: `place_order(...)` — `SECURITY DEFINER`, ordered
@@ -105,7 +105,7 @@ before this phase passes its tests.
 
 - [ ] T025 Migration `0009_rls_policies.sql` part 1: `current_role_name()`, `is_staff()` and
       `is_admin()` — all `SECURITY DEFINER STABLE` with `SET search_path = public`
-- [ ] T026 Migration `0009` part 2: revoke baseline grants; enable RLS on all 14 tables; write
+- [ ] T026 Migration `0009` part 2: revoke baseline grants; enable RLS on all 15 tables; write
       every policy from [contracts/rls-policies.md](contracts/rls-policies.md). **No INSERT or
       UPDATE policy on `orders`; no write policy of any kind on `order_status_history`**
 - [ ] T027 Migration `0010_search.sql`: the `products.search_text` generated column and its GIN
@@ -115,8 +115,10 @@ before this phase passes its tests.
 
 ### Seed and types
 
-- [ ] T029 [P] `supabase/seed.sql`: Cairo/Giza/Alexandria with fees and minimums, the bilingual
-      grocery category tree, starter Egyptian brands, and the bootstrap admin account
+- [ ] T029 [P] `supabase/seed.sql`: **all 27 Egyptian governorates** bilingually, with Cairo and
+      Giza active and carrying real fees and minimums and the other 25 inactive awaiting
+      activation (FR-056a); the bilingual grocery category tree; starter Egyptian brands; and the
+      bootstrap admin account
 - [ ] T030 [P] Generate `src/types/database.ts` from the schema and wire `npm run gen:types`
 - [ ] T031 [P] Supabase clients: `src/lib/supabase/server.ts`, `client.ts`, and `service.ts`
       carrying the `server-only` guard so the service key cannot enter a client bundle (FR-066)
@@ -128,7 +130,7 @@ before this phase passes its tests.
 - [ ] T032 [P] `supabase/tests/pricing.test.sql` — every case in the `effective_price` contract
       table: windows, overlap resolution, percentage rounding, zero clamping, ancestor scope
 - [ ] T033 [P] `supabase/tests/place_order.test.sql` — happy path, crafted client prices
-      ignored, stock exhaustion, minimum quantity, city minimum, idempotent replay, atomic
+      ignored, stock exhaustion, minimum quantity, governorate minimum, idempotent replay, atomic
       rollback (SC-005, SC-006)
 - [ ] T034 [P] `supabase/tests/transitions.test.sql` — table-driven over every legal and illegal
       transition, plus the customer-cancel authorization boundary (SC-011)
@@ -169,7 +171,7 @@ totals.
 - [ ] T042 [US2] `loginCustomer` in the same module: rate-limit check, sign-in, attempt
       recording, identical failure message for unknown number and wrong password (FR-012, FR-014)
 - [ ] T043 [US2] `logout` action and session helpers
-- [ ] T044 [P] [US2] `src/app/[locale]/register/page.tsx` — full name, phone, city, address,
+- [ ] T044 [P] [US2] `src/app/[locale]/register/page.tsx` — full name, phone, governorate, address,
       **required landmark**, password (FR-007)
 - [ ] T045 [P] [US2] `src/app/[locale]/login/page.tsx` — phone and password
 - [ ] T046 [US2] `src/app/[locale]/account/` — profile and address management, add/edit/delete
@@ -199,7 +201,7 @@ totals.
 - [ ] T056 [US1] `src/components/cart/CartSheet.tsx` and `CartSummary.tsx` — every displayed
       amount comes from the server
 - [ ] T057 [US1] `src/app/[locale]/cart/page.tsx` — quantities, removal, per-line issue
-      messages, city selector updating the fee (Story 1 scenario 4)
+      messages, governorate selector updating the fee (Story 1 scenario 4)
 - [ ] T058 [US1] `src/app/[locale]/checkout/page.tsx` — address selection, final server totals,
       minimum-order shortfall message, idempotency key generated on mount (FR-030, FR-031)
 - [ ] T059 [US1] `src/lib/actions/orders.ts` → `placeOrder` calling `place_order`, sending only
@@ -219,7 +221,7 @@ Staff can work the queue directly from the database until Phase 5 lands.
 
 ## Phase 4: User Story 3 — Admin Master Data (Priority: P1)
 
-**Goal**: Staff run the catalog, promotions and delivery cities without touching code.
+**Goal**: Staff run the catalog, promotions and delivery governorates without touching code.
 
 **Independent Test**: A staff account creates a category, a brand and a product with both
 languages and photos, and the product appears on the storefront.
@@ -245,8 +247,9 @@ languages and photos, and the product appears on the storefront.
 - [ ] T072 [P] [US3] `src/app/[locale]/admin/brands/` — brand management (FR-053)
 - [ ] T073 [P] [US3] `src/app/[locale]/admin/promotions/` — discount type, value, date range,
       scope selection (FR-055)
-- [ ] T074 [P] [US3] `src/app/[locale]/admin/cities/` — fee and minimum order value, activate
-      (FR-056)
+- [ ] T074 [P] [US3] `src/app/[locale]/admin/governorates/` — the full list of 27 with fee,
+      minimum order value and an activate toggle; inactive ones visually distinct so staff can see
+      at a glance where delivery runs (FR-056, FR-056a)
 - [ ] T075 [US3] `src/app/[locale]/admin/staff/` — staff accounts, role assignment, and the
       staff-mediated password reset writing `admin_audit_log` (FR-016, FR-060)
 - [ ] T076 [US3] Deactivate-instead-of-delete behaviour across all admin entities, with a clear
@@ -272,7 +275,7 @@ customer cancels while submitted but is refused once confirmed.
 
 - [ ] T078 [US4] `src/lib/actions/orders.ts` → `transitionOrder` calling `set_order_status`,
       mapping typed errors to localized messages
-- [ ] T079 [US4] `src/app/[locale]/admin/orders/page.tsx` — queue with filters by state, city
+- [ ] T079 [US4] `src/app/[locale]/admin/orders/page.tsx` — queue with filters by state, governorate
       and date, and search by reference or customer phone (FR-058)
 - [ ] T080 [US4] `src/app/[locale]/admin/orders/[id]/page.tsx` — detail with lines, the delivery
       address **including landmark**, transition controls offering only legal next states, and a
@@ -301,7 +304,7 @@ customer cancels while submitted but is refused once confirmed.
 **Goal**: The owner reads the business's numbers and downloads them as a spreadsheet; ordinary
 staff see operations without ever seeing margin.
 
-**Independent Test**: Over a seeded period of orders across several statuses, cities and
+**Independent Test**: Over a seeded period of orders across several statuses, governorates and
 products, every dashboard figure reconciles exactly against the underlying orders, and a
 downloaded file opens in Excel with Arabic rendering correctly.
 
@@ -314,11 +317,11 @@ downloaded file opens in Excel with Arabic rendering correctly.
       `orders.cancelled_at`, set inside `set_order_status` in the same transaction as the history
       row so they cannot drift from the status (FR-072)
 - [ ] T088 Migration `0012` part 2: the reporting indexes on `orders(delivered_at)`,
-      `orders(placed_at)`, `orders(city_id, placed_at)` and `order_items(product_id)` (SC-019)
+      `orders(placed_at)`, `orders(governorate_id, placed_at)` and `order_items(product_id)` (SC-019)
 - [ ] T089 Migration `0012` part 3: `cairo_date(ts)` — the single shared Egypt-local bucketing
       expression every report uses (FR-073, research R18)
 - [ ] T090 [P] Migration `0012` part 4: `report_summary`, `report_sales_by_day`,
-      `report_sales_by_product`, `report_sales_by_category`, `report_sales_by_city` (FR-071,
+      `report_sales_by_product`, `report_sales_by_category`, `report_sales_by_governorate` (FR-071,
       FR-074)
 - [ ] T091 [P] Migration `0012` part 5: `report_customers`, `report_promotions`,
       `report_low_stock` (FR-075, FR-076, FR-077)
@@ -337,7 +340,7 @@ downloaded file opens in Excel with Arabic rendering correctly.
 - [ ] T096 [P] [US7] `src/components/admin/StatTile.tsx` and `SalesChart.tsx` — legible in both
       directions and at 360px
 - [ ] T097 [US7] `src/app/[locale]/admin/reports/sales/page.tsx` — by day, product, category
-      and city (FR-074)
+      and governorate (FR-074)
 - [ ] T098 [P] [US7] `src/app/[locale]/admin/reports/customers/page.tsx` — new, returning, top
       customers (FR-075)
 - [ ] T099 [P] [US7] `src/app/[locale]/admin/reports/promotions/page.tsx` — promotion

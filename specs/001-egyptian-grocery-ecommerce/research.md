@@ -94,7 +94,7 @@ is a far worse trade.
 ## R3. Bilingual content modelling
 
 **Decision**: **Denormalized paired columns** — `name_ar` / `name_en`, `description_ar` /
-`description_en` — on `products`, `categories`, `brands` and `cities`. Not a separate
+`description_en` — on `products`, `categories`, `brands` and `governorates`. Not a separate
 translations table.
 
 **Rationale**:
@@ -175,14 +175,14 @@ The client sends product IDs and quantities and nothing else.
 Inside one transaction the function:
 
 1. Resolves the caller via `auth.uid()`; rejects an anonymous caller (FR-036).
-2. Verifies the address belongs to the caller and its city is active (FR-062, edge case).
+2. Verifies the address belongs to the caller and its governorate is active (FR-062, edge case).
 3. Locks each referenced product row with `SELECT ... FOR UPDATE`, ordered by product id to
    avoid deadlocks between concurrent orders.
 4. Re-reads current `price`, `stock_qty`, `min_order_qty`, `is_active` for each product.
 5. Resolves the single best active promotion per product via `effective_price()` (R7).
 6. Validates stock, minimum quantity, and active status; raises a typed error naming the
    offending product on failure (FR-032, FR-033).
-7. Computes line totals, subtotal, total discount; reads the city's `delivery_fee` and
+7. Computes line totals, subtotal, total discount; reads the governorate's `delivery_fee` and
    `min_order_value`; refuses if subtotal is below the minimum, reporting the shortfall
    (FR-031).
 8. Inserts the `orders` row, the `order_items` rows carrying the **price snapshot** and a
@@ -192,7 +192,7 @@ Inside one transaction the function:
 
 **Rationale**: Putting the whole computation behind one database function means there is no
 code path — no future admin script, no forgotten route, no client fetch — that can create an
-order at a price the database did not compute. Atomicity (FR-037) comes free from the
+order at a price the database did not compute. Atomigovernorate (FR-037) comes free from the
 transaction. Row locks give SC-016 (exactly one winner for the last unit) without an
 application-level lock service.
 
@@ -207,7 +207,7 @@ one function, and because the read-validate-write window would need explicit loc
 Database triggers computing totals on insert — rejected as harder to test and to return
 meaningful validation errors from.
 
-**Preview endpoint**: `price_cart(p_items jsonb, p_city_id uuid)` — a `STABLE` function
+**Preview endpoint**: `price_cart(p_items jsonb, p_governorate_id uuid)` — a `STABLE` function
 sharing the same pricing logic — serves the cart and checkout display. Because both paths call
 the same underlying pricing, the displayed total and the recorded total cannot diverge
 (SC-005), and FR-035 is satisfied by diffing the preview shown against the placement result.
@@ -260,7 +260,7 @@ recursive policy evaluation.
 | `order_status_history` | read where parent order is own; no insert/update/delete | read all; insert via RPC only | read all |
 | `products`, `categories`, `brands` | read where `is_active` | read all | full write |
 | `product_costs` | **no grant at all** | **no grant at all** | full |
-| `cities` | read where `is_active` | read all | full write |
+| `governorates` | read where `is_active` | read all | full write |
 | `promotions` | read where active and in window | read all | full write |
 
 **Cost price isolation** (FR-063, SC-008): cost lives in a separate `product_costs` table
@@ -435,7 +435,7 @@ money-or-data critical, with lighter coverage elsewhere.
 | Area | Approach |
 |---|---|
 | Pricing engine (`effective_price`, `price_cart`) | pgTAP-style SQL assertions covering promotion windows, overlap, percentage rounding, zero clamping, category-ancestor scope. |
-| Order placement (`place_order`) | Integration tests against a local Supabase instance: happy path, stock exhaustion, minimum quantity, city minimum, idempotent replay, and a concurrent last-unit race. |
+| Order placement (`place_order`) | Integration tests against a local Supabase instance: happy path, stock exhaustion, minimum quantity, governorate minimum, idempotent replay, and a concurrent last-unit race. |
 | Status transitions (`set_order_status`) | Table-driven test asserting every legal transition succeeds and every illegal one is refused, plus the customer-cancel authorization boundary and the simultaneous-transition race. |
 | RLS isolation | Tests running as two distinct customer JWTs and one staff JWT, asserting cross-customer reads return zero rows and that `product_costs` is unreachable for both non-admin roles. |
 | UI | Playwright smoke tests for the register → browse → cart → order journey in Arabic at a 360px viewport, plus an RTL layout assertion (no horizontal overflow). |
@@ -452,7 +452,7 @@ components would consume effort without protecting money or data.
 
 - `customer`: storefront only.
 - `staff`: order queue and status transitions; read-only catalog.
-- `admin`: everything, including prices, promotions, cities, cost data, and staff account
+- `admin`: everything, including prices, promotions, governorates, cost data, and staff account
   management.
 
 Enforcement is layered: middleware redirects non-staff away from `/admin` for a clean user
@@ -478,7 +478,7 @@ milliseconds and returns a handful of rows. This is the same reasoning that keep
 processing out of the Worker (R12).
 
 Indexes that make it cheap: `orders(status, delivered_at)`, `orders(placed_at)`,
-`order_items(product_id)`, and `orders(city_id, placed_at)`.
+`order_items(product_id)`, and `orders(governorate_id, placed_at)`.
 
 **No pre-aggregated rollup table in v1.** At 3,000 orders/month, a year of data is ~36,000
 orders and ~290,000 lines — a range scan Postgres handles comfortably inside SC-019's 2-second

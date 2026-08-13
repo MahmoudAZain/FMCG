@@ -77,7 +77,7 @@ promotion_id     uuid     -- NULL when no promotion applies
 
 ---
 
-## `price_cart(p_items jsonb, p_city_id uuid) → jsonb`
+## `price_cart(p_items jsonb, p_governorate_id uuid) → jsonb`
 
 `STABLE`. The preview used by the cart and checkout screens. **Shares its pricing path with
 `place_order`**, which is what makes the displayed total and the recorded total incapable of
@@ -126,7 +126,7 @@ diverging (SC-005).
 **Issue codes** on a line: `out_of_stock`, `insufficient_stock` (with `available_qty`),
 `below_min_qty` (with `min_order_qty`), `inactive_product`.
 **Blocking issues** at cart level: `below_min_order_value` (with `shortfall`),
-`city_inactive`, `empty_cart`.
+`governorate_inactive`, `empty_cart`.
 
 Preview **never mutates** and never reserves stock. It reports issues so the shopper sees them
 before committing (FR-035), while `place_order` re-validates independently — the preview is
@@ -147,7 +147,7 @@ field present in the payload is discarded rather than validated (FR-026).
 2. Return the existing order if `p_idempotency_key` is already present — a double submission
    creates exactly one order (FR-038).
 3. Load the address; raise `address_not_found` unless `profile_id = v_uid` (FR-062).
-4. Load the city; raise `city_inactive` unless active.
+4. Load the governorate; raise `governorate_inactive` unless active.
 5. Raise `empty_cart` if no items.
 6. `SELECT ... FOR UPDATE` on every referenced product, **ordered by `product_id`** — a fixed
    lock order prevents deadlock between concurrent orders touching the same products.
@@ -155,9 +155,9 @@ field present in the payload is discarded rather than validated (FR-026).
    `effective_price(product_id, now())`. Raise `product_unavailable`, `insufficient_stock` (with
    available quantity) or `below_min_qty` (with the minimum), naming the product (FR-032,
    FR-033).
-8. Compute `subtotal`, `discount_total`; read the city's `delivery_fee`; compute
+8. Compute `subtotal`, `discount_total`; read the governorate's `delivery_fee`; compute
    `grand_total = subtotal - discount_total + delivery_fee`.
-9. Raise `below_min_order_value` with the shortfall if the subtotal is under the city minimum
+9. Raise `below_min_order_value` with the shortfall if the subtotal is under the governorate minimum
    (FR-031).
 10. Generate `reference` as `EG-YYMMDD-NNNN` (FR-039).
 11. Insert `orders` with the address snapshot including landmark (FR-040), status `submitted`
@@ -191,11 +191,11 @@ field present in the payload is discarded rather than validated (FR-026).
 | `not_authenticated` | No signed-in customer (FR-036) |
 | `empty_cart` | No items submitted |
 | `address_not_found` | Address absent or not the caller's (FR-062) |
-| `city_inactive` | Destination city no longer served |
+| `governorate_inactive` | Destination governorate no longer served |
 | `product_unavailable` | Product inactive or deleted |
 | `insufficient_stock` | Requested exceeds available; includes `available_qty` |
 | `below_min_qty` | Below the product's minimum; includes `min_order_qty` |
-| `below_min_order_value` | Subtotal under the city minimum; includes `shortfall` |
+| `below_min_order_value` | Subtotal under the governorate minimum; includes `shortfall` |
 
 **Contract tests**
 
@@ -267,7 +267,7 @@ field present in the payload is discarded rather than validated (FR-026).
 Registration spans Supabase Auth and the `profiles` table, so it runs as a Server Action using
 the service role rather than as a database function.
 
-**Input**: `full_name`, `phone` (any notation), `city_id`, `street_address`, `landmark`,
+**Input**: `full_name`, `phone` (any notation), `governorate_id`, `street_address`, `landmark`,
 `building?`, `floor_apartment?`, `password`, `locale`.
 
 **Sequence**:
@@ -286,7 +286,7 @@ Steps 4–6 are compensated on failure: if the profile or address insert fails, 
 deleted, so a half-registered account cannot exist.
 
 **Errors**: `invalid_phone`, `phone_taken`, `weak_password` (FR-013), `landmark_required`,
-`city_inactive`.
+`governorate_inactive`.
 
 ---
 

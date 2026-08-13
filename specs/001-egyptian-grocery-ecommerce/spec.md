@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "A grocery e-commerce website for the Egyptian market. Bilingual Arabic/English with Arabic default and full RTL. Customers sign up with full name, phone, city, delivery address and landmark; they log in with phone and password, with no SMS verification and no email. Customers browse by category, search, see promotions and discounted prices, add to cart and place an order. There is no online payment — everything is cash on delivery and the site's only job is to capture the order. Staff manage products, categories, brands, promotions and delivery cities from an admin area without touching code. Staff move orders through submitted, confirmed, preparing, out for delivery, delivered, plus cancelled and returned, with every change logged. Customers see their own order history, follow live status, and cancel before confirmation. Mobile-first, near-zero running cost, server-computed totals, and strict isolation of customer data and cost prices."
+**Input**: User description: "A grocery e-commerce website for the Egyptian market. Bilingual Arabic/English with Arabic default and full RTL. Customers sign up with full name, phone, governorate, delivery address and landmark; they log in with phone and password, with no SMS verification and no email. Customers browse by category, search, see promotions and discounted prices, add to cart and place an order. There is no online payment — everything is cash on delivery and the site's only job is to capture the order. Staff manage products, categories, brands, promotions and delivery governorates from an admin area without touching code. Staff move orders through submitted, confirmed, preparing, out for delivery, delivered, plus cancelled and returned, with every change logged. Customers see their own order history, follow live status, and cancel before confirmation. Mobile-first, near-zero running cost, server-computed totals, and strict isolation of customer data and cost prices."
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -15,7 +15,7 @@
 A shopper opens the site in Arabic on their phone. They browse a category such as
 dairy, tap a product to see its photos, pack size and price, and add a few items to
 their cart. Some items show a promotional price struck through against the original.
-They open the cart, see the item subtotal, the delivery fee for their city, and the
+They open the cart, see the item subtotal, the delivery fee for their governorate, and the
 grand total. They sign in (or register), pick a saved delivery address, and confirm the
 order. The order is recorded as *submitted* and they are told a staff member will call
 to confirm.
@@ -23,7 +23,7 @@ to confirm.
 **Why this priority**: This is the entire commercial purpose of the system. Every other
 story exists to support or administer it. Without this, there is no product.
 
-**Independent Test**: With a manually seeded catalog and one delivery city, a new
+**Independent Test**: With a manually seeded catalog and one delivery governorate, a new
 customer can register, add products to a cart, and place an order that appears in the
 database with correct, server-computed totals — verifiable end-to-end without any admin
 UI existing.
@@ -39,9 +39,9 @@ UI existing.
 3. **Given** a product whose promotion window has already ended, **When** the shopper
    views it, **Then** only the normal price is shown and no discount is applied at
    checkout.
-4. **Given** a cart containing items, **When** the shopper changes the delivery city,
-   **Then** the delivery fee and the grand total update to that city's fee.
-5. **Given** a cart whose item subtotal is below the selected city's minimum order
+4. **Given** a cart containing items, **When** the shopper changes the delivery governorate,
+   **Then** the delivery fee and the grand total update to that governorate's fee.
+5. **Given** a cart whose item subtotal is below the selected governorate's minimum order
    value, **When** the shopper attempts to place the order, **Then** the order is
    refused and the shopper is told how much more they need to add.
 6. **Given** a shopper who has manipulated the prices or totals held in their browser,
@@ -61,7 +61,7 @@ UI existing.
 
 ### User Story 2 - Register and sign in with a phone number (Priority: P1)
 
-A new customer registers with their full name, mobile number, city, delivery address and
+A new customer registers with their full name, mobile number, governorate, delivery address and
 a landmark that lets a driver find the building. They choose a password. There is no
 verification code and no email address. On later visits they sign in with the same phone
 number and password.
@@ -76,7 +76,7 @@ address — with no catalog present.
 **Acceptance Scenarios**:
 
 1. **Given** the registration form, **When** the customer submits full name, mobile
-   number, city, delivery address, landmark and password, **Then** the account is created
+   number, governorate, delivery address, landmark and password, **Then** the account is created
    and they are signed in immediately with no verification step.
 2. **Given** a mobile number already registered, **When** someone attempts to register it
    again, **Then** registration is refused with a message saying the number is already in
@@ -103,7 +103,7 @@ A staff member signs into the admin area and adds a new product: names and descr
 both Arabic and English, category, brand, price, unit type, pack size, units per carton,
 weight, barcode, SKU, stock, minimum order quantity, storage type, and several photos.
 They also create categories and brands, set up a promotion with a start and end date, and
-add a delivery city with its fee and minimum order value.
+add a delivery governorate with its fee and minimum order value.
 
 **Why this priority**: Without master data, the storefront has nothing to sell. It is
 required for Story 1 to be usable by real customers rather than by a seeding script.
@@ -124,10 +124,10 @@ verifiable without any customer having registered.
    views the affected products before that date, **Then** no discount is shown or applied.
 4. **Given** an active promotion, **When** its end date passes, **Then** affected products
    return to their normal price with no staff action required.
-5. **Given** a delivery city with a fee and a minimum order value, **When** a shopper
-   selects that city, **Then** those exact values govern their cart totals.
-6. **Given** a city marked inactive by staff, **When** a shopper opens the city selector,
-   **Then** that city is not offered.
+5. **Given** a delivery governorate with a fee and a minimum order value, **When** a shopper
+   selects that governorate, **Then** those exact values govern their cart totals.
+6. **Given** a governorate marked inactive by staff, **When** a shopper opens the governorate selector,
+   **Then** that governorate is not offered.
 7. **Given** a staff member editing a product's price, **When** they save, **Then** the
    new price applies to subsequent orders while previously placed orders retain the price
    they were charged.
@@ -155,7 +155,7 @@ timestamp.
 **Acceptance Scenarios**:
 
 1. **Given** the orders queue, **When** a staff member opens it, **Then** they see all
-   orders with reference, customer name, phone, city, total and current state, and can
+   orders with reference, customer name, phone, governorate, total and current state, and can
    filter by state.
 2. **Given** an order in *submitted*, **When** staff mark it *confirmed*, **Then** the
    state changes and a history entry records the previous state, the new state, the staff
@@ -235,7 +235,7 @@ products with an active discount.
 
 The owner opens a dashboard and sees how the business is doing: revenue for the period, how
 many orders came in and how many were actually delivered, the average basket, which products
-and categories sell, which cities order most, how many customers are new versus returning, and
+and categories sell, which governorates order most, how many customers are new versus returning, and
 how much is being lost to cancellations and returns. They pick a date range, drill into a
 report, and download it as a spreadsheet to work on offline or share with an accountant.
 
@@ -246,7 +246,7 @@ for delivery, what is running low on stock — but never cost, margin or profit.
 but decisions about pricing, stock and promotions are guesswork until someone can see the
 numbers. It ranks alongside order operations rather than above them.
 
-**Independent Test**: With a period of seeded orders across several statuses, cities and
+**Independent Test**: With a period of seeded orders across several statuses, governorates and
 products, the dashboard totals reconcile exactly against the underlying orders, and a downloaded
 export opens in a spreadsheet with Arabic text rendering correctly.
 
@@ -292,7 +292,7 @@ export opens in a spreadsheet with Arabic text rendering correctly.
   order succeeds; the other is refused with the affected item named.
 - **Stock reduced by staff below a cart quantity**: the shopper is refused at placement and
   told the available quantity.
-- **City deactivated while in cart**: a shopper holding a now-inactive city is asked to
+- **Governorate deactivated while in cart**: a shopper holding a now-inactive governorate is asked to
   choose another before placing the order.
 - **Delivery fee or minimum changed mid-cart**: the values current at placement govern, and
   the shopper sees them before commitment.
@@ -354,7 +354,7 @@ export opens in a spreadsheet with Arabic text rendering correctly.
 **Customer identity**
 
 - **FR-007**: The system MUST allow a person to register with full name, mobile number,
-  city, delivery address, landmark, and password, and MUST require all of these.
+  governorate, delivery address, landmark, and password, and MUST require all of these.
 - **FR-008**: The system MUST NOT require, collect, or verify an email address, and MUST NOT
   send a verification code by any channel.
 - **FR-009**: The system MUST reduce any accepted Egyptian mobile number notation to one
@@ -368,7 +368,7 @@ export opens in a spreadsheet with Arabic text rendering correctly.
 - **FR-014**: The system MUST limit the rate of failed sign-in attempts against a single
   mobile number.
 - **FR-015**: Customers MUST be able to hold multiple delivery addresses, each with its own
-  city and landmark, and to designate one as default.
+  governorate and landmark, and to designate one as default.
 - **FR-016**: The system MUST provide a staff-mediated password reset, recorded in the audit
   trail, since no out-of-band recovery channel exists.
 
@@ -399,10 +399,10 @@ export opens in a spreadsheet with Arabic text rendering correctly.
 - **FR-028**: The system MUST apply a promotion only when the moment of pricing falls within
   its start and end dates.
 - **FR-029**: The system MUST clamp any discounted price at or above zero.
-- **FR-030**: The system MUST add the delivery fee of the order's destination city to the
+- **FR-030**: The system MUST add the delivery fee of the order's destination governorate to the
   order total.
 - **FR-031**: The system MUST refuse an order whose item subtotal is below the destination
-  city's minimum order value, stating the shortfall.
+  governorate's minimum order value, stating the shortfall.
 - **FR-032**: The system MUST enforce each product's minimum order quantity.
 - **FR-033**: The system MUST refuse an order for a quantity exceeding available stock.
 - **FR-034**: The system MUST record the price of each line as charged at placement, so that
@@ -459,11 +459,17 @@ export opens in a spreadsheet with Arabic text rendering correctly.
   product photos.
 - **FR-055**: Staff MUST be able to create promotions with a discount, a start date and an
   end date, scoped to a product, a category, a brand, or the whole catalog.
-- **FR-056**: Staff MUST be able to create and edit delivery cities, each with its own
-  delivery fee and minimum order value, and to deactivate a city.
+- **FR-056**: Staff MUST be able to create and edit delivery governorates, each with its own
+  delivery fee and minimum order value, and to deactivate a governorate.
+- **FR-056a**: The system MUST provide **all 27 Egyptian governorates** in the admin from the
+  outset, named in both languages, so that extending delivery coverage requires only setting a
+  fee and a minimum order value and activating the governorate — never creating a record or
+  changing code.
+- **FR-056b**: The system MUST offer customers only the governorates currently marked active, and
+  MUST refuse an order destined for an inactive one.
 - **FR-057**: The system MUST refuse to save master data missing a required value in either
   language.
-- **FR-058**: Staff MUST be able to view all orders, filter them by state, city and date, and
+- **FR-058**: Staff MUST be able to view all orders, filter them by state, governorate and date, and
   search them by reference or customer phone.
 - **FR-059**: The system MUST record a cost price per product that is visible to staff only.
 - **FR-060**: The system MUST distinguish at least two staff capability levels, so that
@@ -495,7 +501,7 @@ export opens in a spreadsheet with Arabic text rendering correctly.
   report cancelled and returned orders separately rather than folding them into revenue.
 - **FR-073**: The system MUST group all time-based figures by day, week or month in **Egypt
   local time**, so that a day's figures match the business day staff worked.
-- **FR-074**: The system MUST report sales broken down by product, category, brand, city and
+- **FR-074**: The system MUST report sales broken down by product, category, brand, governorate and
   day.
 - **FR-075**: The system MUST report customer figures: new customers, returning customers,
   total registered customers, and the customers who order most.
@@ -533,9 +539,9 @@ export opens in a spreadsheet with Arabic text rendering correctly.
 
 - **Customer**: A person who orders. Holds full name, canonical mobile number, password
   credential, preferred language, and account state. Owns addresses and orders.
-- **Address**: A delivery destination belonging to one customer. Holds city, street address,
+- **Address**: A delivery destination belonging to one customer. Holds governorate, street address,
   landmark, optional building and floor detail, and whether it is the customer's default.
-- **City**: A place the fleet delivers to. Holds bilingual name, delivery fee, minimum order
+- **Governorate**: A place the fleet delivers to. Holds bilingual name, delivery fee, minimum order
   value, and whether it is currently served.
 - **Category**: A bilingual grouping of products, optionally nested under a parent category,
   with a display order and an active flag.
@@ -553,7 +559,7 @@ export opens in a spreadsheet with Arabic text rendering correctly.
 - **Cart**: A shopper's working set of product references and quantities prior to placing an
   order. Holds no prices — prices are always derived.
 - **Order**: A captured purchase. Holds its reference, the customer, a snapshot of the
-  delivery address including landmark, the destination city, the item subtotal, the total
+  delivery address including landmark, the destination governorate, the item subtotal, the total
   discount, the delivery fee, the grand total, the current state, and the time it was
   placed.
 - **Order Line**: One product within an order, holding the quantity and the unit price,
@@ -610,8 +616,13 @@ export opens in a spreadsheet with Arabic text rendering correctly.
 ## Assumptions
 
 - **Market and scale**: Egypt only, Egyptian Pounds only, a single warehouse and an in-house
-  fleet. Planning volume is on the order of 1,000 customers, 2,000 products and 3,000 orders
+  fleet. **Cairo and Giza are live at launch**; the other 25 governorates are pre-loaded and
+  inactive, activated from the admin as coverage grows. Planning volume is on the order of 1,000 customers, 2,000 products and 3,000 orders
   per month — comfortably inside free service tiers.
+- **Delivery zones**: A governorate is the unit of delivery pricing in v1 — one fee and one
+  minimum per governorate. Finer zones (districts within Cairo) are out of scope for this release;
+  the schema accommodates adding them later without disturbing existing orders, which snapshot the
+  fee they were charged.
 - **Delivery**: The fleet's scheduling, routing and driver assignment happen outside this
   system. The site captures orders and exposes their state; it does not dispatch.
 - **Payment**: Cash is collected by the driver on delivery. No settlement, reconciliation or

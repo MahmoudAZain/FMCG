@@ -41,7 +41,7 @@ FR-044 exactly.
 auth.users (Supabase)
     │ 1:1
     ▼
-profiles ──1:N──► addresses ──N:1──► cities
+profiles ──1:N──► addresses ──N:1──► governorates
     │                                   ▲
     │ 1:N                               │ N:1
     ▼                                   │
@@ -91,7 +91,7 @@ admin full.
 
 ---
 
-### `cities`
+### `governorates`
 
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
@@ -113,7 +113,7 @@ admin full.
 |---|---|---|---|
 | `id` | `uuid` | PK | |
 | `profile_id` | `uuid` | NOT NULL, FK → `profiles(id)` ON DELETE CASCADE | |
-| `city_id` | `uuid` | NOT NULL, FK → `cities(id)` ON DELETE RESTRICT | |
+| `governorate_id` | `uuid` | NOT NULL, FK → `governorates(id)` ON DELETE RESTRICT | |
 | `street_address` | `text` | NOT NULL, length 5–300 | FR-007 |
 | `landmark` | `text` | **NOT NULL**, length 3–200 | FR-007 — drivers cannot find addresses without it |
 | `building` | `text` | NULL, length ≤ 60 | Optional detail |
@@ -128,7 +128,7 @@ admin full.
   it (Story 2, scenario 5).
 - At most one default per customer, enforced by a partial unique index:
   `UNIQUE (profile_id) WHERE is_default`.
-- `ON DELETE RESTRICT` on `city_id` prevents removing a city still referenced (FR-061).
+- `ON DELETE RESTRICT` on `governorate_id` prevents removing a governorate still referenced (FR-061).
 
 **RLS**: customer full access to own rows only; staff read all (needed to read delivery
 details on an order); no customer may see another's (FR-062).
@@ -330,18 +330,18 @@ Resolution, per research R7:
 | `id` | `uuid` | PK | |
 | `reference` | `text` | NOT NULL, UNIQUE | `EG-YYMMDD-NNNN` (research R14, FR-039) |
 | `profile_id` | `uuid` | NOT NULL, FK → `profiles(id)` ON DELETE RESTRICT | |
-| `city_id` | `uuid` | NOT NULL, FK → `cities(id)` ON DELETE RESTRICT | |
+| `governorate_id` | `uuid` | NOT NULL, FK → `governorates(id)` ON DELETE RESTRICT | |
 | `status` | `order_status` | NOT NULL, DEFAULT `'submitted'` | FR-041 |
 | `subtotal` | `integer` | NOT NULL, CHECK `>= 0` | Piastres, server-computed |
 | `discount_total` | `integer` | NOT NULL, DEFAULT 0, CHECK `>= 0` | Piastres |
-| `delivery_fee` | `integer` | NOT NULL, CHECK `>= 0` | Piastres, snapshot of city fee |
+| `delivery_fee` | `integer` | NOT NULL, CHECK `>= 0` | Piastres, snapshot of governorate fee |
 | `grand_total` | `integer` | NOT NULL, CHECK `>= 0` | Piastres |
 | `recipient_name` | `text` | NOT NULL | Address snapshot (FR-040) |
 | `recipient_phone` | `text` | NOT NULL | Address snapshot |
 | `street_address` | `text` | NOT NULL | Address snapshot |
 | `landmark` | `text` | NOT NULL | Address snapshot — the driver's instruction |
 | `building` / `floor_apartment` | `text` | NULL | Address snapshot |
-| `city_name_ar` / `city_name_en` | `text` | NOT NULL | Address snapshot |
+| `governorate_name_ar` / `governorate_name_en` | `text` | NOT NULL | Address snapshot |
 | `customer_note` | `text` | NULL, length ≤ 500 | |
 | `idempotency_key` | `text` | NOT NULL, **UNIQUE** | FR-038 (research R6) |
 | `placed_at` | `timestamptz` | NOT NULL DEFAULT `now()` | |
@@ -350,7 +350,7 @@ Resolution, per research R7:
 **Why the address is snapshotted rather than referenced**: a customer editing or deleting an
 address after ordering must not change where a driver was told to go. FR-040 requires the
 address *as it stood at placement*, so the order carries its own copy. The same reasoning
-applies to the city name and the delivery fee.
+applies to the governorate name and the delivery fee.
 
 **Consistency constraint**:
 ```sql
@@ -366,7 +366,7 @@ This is a structural guarantee that the recorded total is internally coherent, b
 - Staff and admin: read all; status changes only via `set_order_status`.
 
 **Indexes**: `UNIQUE(reference)`, `UNIQUE(idempotency_key)`, `(profile_id, placed_at DESC)`,
-`(status, placed_at DESC)` for the staff queue (FR-058), `(city_id)`.
+`(status, placed_at DESC)` for the staff queue (FR-058), `(governorate_id)`.
 
 ---
 
@@ -490,7 +490,7 @@ transaction as the history row, so they cannot drift from the status.
 ```sql
 CREATE INDEX orders_delivered_idx  ON orders (delivered_at) WHERE status = 'delivered';
 CREATE INDEX orders_placed_idx     ON orders (placed_at);
-CREATE INDEX orders_city_date_idx  ON orders (city_id, placed_at);
+CREATE INDEX orders_governorate_date_idx  ON orders (governorate_id, placed_at);
 CREATE INDEX order_items_prod_idx  ON order_items (product_id);
 ```
 
@@ -520,7 +520,7 @@ its return type at all.
 | `report_sales_by_day(from, to)` | staff | per Cairo day: orders, delivered, revenue, discount, delivery fees |
 | `report_sales_by_product(from, to)` | staff | per product: units, revenue, order count |
 | `report_sales_by_category(from, to)` | staff | per category: units, revenue |
-| `report_sales_by_city(from, to)` | staff | per city: orders, revenue, delivery fees, average basket |
+| `report_sales_by_governorate(from, to)` | staff | per governorate: orders, revenue, delivery fees, average basket |
 | `report_customers(from, to)` | staff | new, returning, total; top customers by spend and by order count |
 | `report_promotions(from, to)` | staff | per promotion: orders, revenue, total discount given |
 | `report_low_stock(threshold)` | staff | products at or below the threshold |
@@ -611,7 +611,7 @@ already moved on".
 |---|---|---|---|---|
 | `profiles` | — | own (read/update, not `role`) | read all | full |
 | `addresses` | — | own (full) | read all | read all |
-| `cities` | read active | read active | read all | full |
+| `governorates` | read active | read active | read all | full |
 | `categories` | read active | read active | read all | full |
 | `brands` | read active | read active | read all | full |
 | `products` | read active | read active | read all | full |
@@ -651,7 +651,53 @@ the browser does the work at no cost.
 
 Required before the storefront is usable:
 
-1. **Cities** — Cairo, Giza, Alexandria with their fees and minimum order values (FR-056).
+1. **Governorates** — **all 27 Egyptian governorates**, seeded bilingually so staff never have to
+   type one in. Only **Cairo (القاهرة)** and **Giza (الجيزة)** are seeded `is_active = true` for
+   launch; the remaining 25 are seeded inactive with a zero fee, ready for an administrator to
+   set a fee and a minimum order value and switch on as coverage expands (FR-056, FR-056a).
+
+   | # | English | العربية | At launch |
+   |---|---|---|---|
+   | 1 | Cairo | القاهرة | **Active** |
+   | 2 | Giza | الجيزة | **Active** |
+   | 3 | Alexandria | الإسكندرية | Inactive |
+   | 4 | Qalyubia | القليوبية | Inactive |
+   | 5 | Sharqia | الشرقية | Inactive |
+   | 6 | Dakahlia | الدقهلية | Inactive |
+   | 7 | Beheira | البحيرة | Inactive |
+   | 8 | Monufia | المنوفية | Inactive |
+   | 9 | Gharbia | الغربية | Inactive |
+   | 10 | Kafr El Sheikh | كفر الشيخ | Inactive |
+   | 11 | Damietta | دمياط | Inactive |
+   | 12 | Port Said | بورسعيد | Inactive |
+   | 13 | Ismailia | الإسماعيلية | Inactive |
+   | 14 | Suez | السويس | Inactive |
+   | 15 | North Sinai | شمال سيناء | Inactive |
+   | 16 | South Sinai | جنوب سيناء | Inactive |
+   | 17 | Faiyum | الفيوم | Inactive |
+   | 18 | Beni Suef | بني سويف | Inactive |
+   | 19 | Minya | المنيا | Inactive |
+   | 20 | Asyut | أسيوط | Inactive |
+   | 21 | Sohag | سوهاج | Inactive |
+   | 22 | Qena | قنا | Inactive |
+   | 23 | Luxor | الأقصر | Inactive |
+   | 24 | Aswan | أسوان | Inactive |
+   | 25 | Red Sea | البحر الأحمر | Inactive |
+   | 26 | New Valley | الوادي الجديد | Inactive |
+   | 27 | Matrouh | مطروح | Inactive |
+
+   **Why all 27 rather than only the served ones**: a governorate is a fixed fact about Egypt, not
+   a business decision, so there is nothing for staff to author. Seeding the full list means
+   expanding coverage is a switch and two numbers in the admin, never a data-entry exercise or a
+   migration — and the Arabic spelling stays consistent instead of depending on whoever typed it.
+   Customers only ever see the active ones (`is_active` in the read policy), so an inactive row is
+   invisible to the storefront.
+
+   **A note for later**: a governorate is a coarse delivery zone — Cairo alone spans very
+   different distances. If fees ever need to differ by district (Maadi vs. New Cairo), the clean
+   move is an `areas` table under `governorates`, with the fee and minimum falling back to the
+   parent when an area has none. Nothing in the current schema blocks that; the order already
+   snapshots the fee it charged.
 2. **Categories** — a starter grocery tree, both languages: خضروات وفواكه / Fruits &
    Vegetables, ألبان وأجبان / Dairy & Cheese, مشروبات / Beverages, بقالة / Pantry,
    مجمدات / Frozen, منظفات / Cleaning, عناية شخصية / Personal Care.
