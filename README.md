@@ -1,4 +1,6 @@
-# FMCG — Egyptian Grocery E-Commerce
+# El-Gomala — الجملة
+
+**Egyptian grocery e-commerce, Arabic-first.**
 
 A bilingual (Arabic-default, RTL) grocery storefront and staff admin console for the Egyptian
 market. Cash on delivery only, fulfilled by an in-house fleet. The site's job is to capture
@@ -70,11 +72,20 @@ Stage 2 precedes all UI because the correctness and isolation guarantees are dat
 Stages 3 and 4 can run in parallel. Stage 6 follows stage 5 because there is nothing to report
 until orders run their full lifecycle.
 
+## Confirmed decisions
+
+| Question | Decision |
+|---|---|
+| Order flow | Customer creates the order → ops team sees it → confirms by phone → marks confirmed → through to delivered |
+| Backups | **Free tier** plus the weekly export job (T117). Worst case is losing up to a week; revisit when order history becomes critical |
+| SMS verification | **Not needed for v1** — phone plus password, staff-mediated password reset |
+| Deferred | Delivery time slots, coupon codes, cross-device cart sync — all additive later |
+
 ## Known risk
 
-The Supabase free tier provides **no backups**. A weekly export job is planned (T117), but a
-catastrophic loss is recoverable only to the last export. Point-in-time recovery requires the
-$25/month Pro tier — a business decision, recorded here rather than made silently.
+The Supabase free tier provides **no backups**, and the business has chosen to launch on it. The
+weekly export job (T117) is therefore the only recovery point, and is required rather than
+optional. Point-in-time recovery would need the $25/month Pro tier.
 
 ## Continuing the work
 

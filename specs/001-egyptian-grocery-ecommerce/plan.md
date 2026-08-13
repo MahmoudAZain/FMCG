@@ -228,6 +228,18 @@ there is nothing to report until orders are flowing through their full lifecycle
 deferred deliberately: category browsing is sufficient for a modest catalog, so search earns its
 place only after the revenue path works.
 
+## Decisions Confirmed by the Business Owner
+
+Recorded 2026-08-13, so implementation proceeds without re-litigating them.
+
+| Question | Decision | Consequence for the build |
+|---|---|---|
+| **Order flow** | Confirmed as specified: the customer creates the order, the ops team sees it in the queue, phones the customer to confirm, marks it confirmed in the system, and it proceeds through to delivered. | No change — this is User Story 4 and the transition table in FR-045. The `submitted` state exists precisely to hold an order until the confirmation call happens. |
+| **Backups** | Launch on the **free tier** with the weekly export job; no paid tier for now. | T117 (weekly export) becomes required rather than optional, and is the only recovery point. Worst case is losing up to a week. Revisit when order history becomes something the business would hate to lose. |
+| **SMS verification** | **Not needed for v1**, as originally specified. | Confirms R2: phone plus password over a synthetic internal identifier, no SMS gateway, no self-service password reset. Staff-mediated reset (FR-016) stands. |
+| **Deferred features** | No preference — the v1 boundary stands as drawn. | Delivery time slots, coupon codes and cross-device cart sync stay out of scope. Each is additive later and none constrains the current schema. |
+| **Project name** | **El-Gomala** (الجملة). | The synthetic auth domain becomes `@phone.elgomala.local`. Naming updated across the documents. |
+
 ## Key Design Decisions
 
 Full reasoning in [research.md](research.md); the decisions that most shape the build:
@@ -235,7 +247,7 @@ Full reasoning in [research.md](research.md); the decisions that most shape the 
 1. **`@opennextjs/cloudflare`, not `next-on-pages`** (R1) — the latter is deprecated and
    Edge-runtime-only, which is incompatible with the Supabase server helpers.
 2. **Synthetic internal email over Supabase Auth** (R2) — phone `+201001234567` maps to
-   `201001234567@phone.fmcg.local`, never shown to anyone. Keeps bcrypt hashing, JWT issuance
+   `201001234567@phone.elgomala.local`, never shown to anyone. Keeps bcrypt hashing, JWT issuance
    and `auth.uid()` in RLS, all of which hand-rolled auth would have to reimplement.
 3. **Integer piastres everywhere** (R5) — a one-piastre float drift is a cash dispute at the
    door when the driver collects.

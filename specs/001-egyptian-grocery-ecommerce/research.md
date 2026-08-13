@@ -52,8 +52,8 @@ disabled.
 - Normalize input to E.164: `+20` followed by the 10-digit mobile number (`01XXXXXXXXX` →
   `+201XXXXXXXXX`). Accept and collapse local, international, spaced and dashed notations
   (FR-009).
-- Derive the auth identifier as `<digits>@phone.fmcg.local` — e.g. `+201001234567` →
-  `201001234567@phone.fmcg.local`. This is a reserved, non-routable domain; nothing is ever
+- Derive the auth identifier as `<digits>@phone.elgomala.local` — e.g. `+201001234567` →
+  `201001234567@phone.elgomala.local`. This is a reserved, non-routable domain; nothing is ever
   sent to it.
 - The synthetic address is an implementation detail. It never appears in the UI, never in
   API responses, and users never type it. The sign-in form takes a phone number and the

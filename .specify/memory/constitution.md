@@ -24,7 +24,7 @@ Removed sections: none
 Follow-up TODOs: none
 -->
 
-# FMCG Egypt Grocery Commerce Constitution
+# El-Gomala Constitution
 
 The project delivers a bilingual (Arabic-default, English-secondary) grocery
 e-commerce storefront and staff admin console for the Egyptian market. Orders are

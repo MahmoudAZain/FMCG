@@ -275,7 +275,7 @@ the service role rather than as a database function.
 1. Validate with Zod; `normalize_phone` the number (FR-009, FR-010).
 2. Reject if `landmark` is blank (FR-007 — drivers cannot deliver without it).
 3. Reject if the phone already exists, with "this number is already registered" (FR-011).
-4. Create the Auth user with the synthetic identifier `<digits>@phone.fmcg.local` and the
+4. Create the Auth user with the synthetic identifier `<digits>@phone.elgomala.local` and the
    chosen password, marked confirmed (research R2).
 5. Insert the `profiles` row with the **canonical phone** and `role = 'customer'`.
    `role` is never taken from input.
