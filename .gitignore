@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+.next/
+out/
+build/
+dist/
+.open-next/
+.vercel/
+.wrangler/
+
+# Environment — never commit secrets
+.env
+.env.local
+.env.*.local
+.dev.vars
+
+# Supabase local stack
+supabase/.branches/
+supabase/.temp/
+
+# Testing
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo
+
+# Agent-local state (may hold credentials — see spec-kit init warning)
+.claude/settings.local.json
+.claude/.credentials.json
