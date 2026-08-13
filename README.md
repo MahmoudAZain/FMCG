@@ -61,7 +61,34 @@ prisma generate && prisma migrate deploy && next build
 deploy, so **the schema is created automatically on the first deploy** — no manual step.
 It is a no-op when the database is already up to date.
 
-### 5. Create your first admin login (one time)
+### 5. Check the deployment
+
+Visit **`/api/health`** on your deployed site. It reports which parts of the setup are
+wired up and what to do about anything that is not:
+
+```json
+{
+  "status": "setup",
+  "checks": {
+    "databaseUrlSet": true,
+    "directUrlSet": true,
+    "nextauthSecretSet": true,
+    "blobTokenSet": false,
+    "databaseReachable": true,
+    "schemaReady": true,
+    "adminUserExists": false,
+    "productCount": 0
+  },
+  "hints": ["No admin account yet. Register at /account/register, then run: ..."]
+}
+```
+
+`status` is `ok` when the site is fully set up, `setup` when it works but still needs an
+admin account or a catalog, and `error` (HTTP 503) when something is actually broken. It
+reports only booleans and counts, never the value of an environment variable, so the
+output is safe to paste when asking for help.
+
+### 6. Create your first admin login (one time)
 
 The seed script is not part of the build (it would re-run on every deploy). Run it once
 from your machine, pointed at the production database:
@@ -78,7 +105,7 @@ This creates the admin account plus a handful of sample products. Sign in at
 `/account/login`, then go to `/admin/products` and replace the samples with your real
 catalog — bulk import is the fastest way.
 
-### 6. Load your real catalog
+### 7. Load your real catalog
 
 `/admin/products/import` accepts Excel/CSV with columns:
 
@@ -131,9 +158,6 @@ migrations applied; the two approaches will fight each other.
   lift the cap, switch to Vercel Blob client-side uploads (`handleUpload`) — note that
   client uploads need a publicly reachable callback URL, so they do not work against
   `localhost`.
-- **Stock is checked and decremented in separate steps**, so two orders placed at the exact
-  same moment could oversell a nearly-empty SKU. Fine at low order volume; tighten with a
-  conditional update or row lock if that changes.
 - **No payment step** — checkout creates a purchase order (net terms / invoice model).
 - **No email notifications** on order placement or status change.
 - **Catalog filters by brand/category only**, no full-text search.
@@ -148,6 +172,7 @@ migrations applied; the two approaches will fight each other.
 - `app/cart`, `app/checkout` — client-side cart (localStorage) → order creation
 - `app/account` — buyer login/register, order detail
 - `app/admin` — product CRUD, bulk import, order management
+- `app/api/health` — deployment diagnostics (see step 5)
 - `middleware.ts` — first-pass gate on `/admin/*`
 - `app/admin/layout.tsx` — authoritative server-side admin check (see note below)
 - `prisma/schema.prisma` — data model
@@ -161,3 +186,17 @@ alone. Middleware is not a sufficient authorization boundary — CVE-2025-29927 
 Next.js middleware to be skipped entirely with a crafted `x-middleware-subrequest` header.
 The middleware remains as a cheap first-pass redirect, but every admin page re-checks the
 session on the server, and every admin API route checks the session independently.
+
+### A note on order integrity
+
+`app/api/orders` treats the cart as untrusted input. Prices always come from the database,
+never from the request. Quantities must be whole numbers of at least one — a negative
+quantity would otherwise produce a negative order total and *increase* stock. Repeated
+lines for the same product are collapsed before the stock check, so they cannot be used to
+order past the available quantity one line at a time.
+
+The stock decrement is guarded inside the `UPDATE` itself
+(`where: { stockCartons: { gte: cartons } }`) rather than relying on the earlier read, so
+simultaneous orders cannot oversell; the loser gets a 409 and the whole transaction rolls
+back. Order numbers carry a random suffix and the insert retries on collision, since a
+plain timestamp collides whenever two orders land in the same millisecond.
