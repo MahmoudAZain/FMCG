@@ -30,32 +30,35 @@ structure in [plan.md](plan.md#source-code-repository-root).
 
 **Purpose**: A deployable, Arabic-first RTL shell on Cloudflare with a working local database.
 
-- [ ] T001 Initialize the Next.js 15 App Router project with TypeScript strict mode at the
+- [x] T001 Initialize the Next.js 15 App Router project with TypeScript strict mode at the
       repository root (`package.json`, `tsconfig.json`, `next.config.ts`)
-- [ ] T002 Add and configure `@opennextjs/cloudflare`: `open-next.config.ts`, `wrangler.jsonc`
+- [x] T002 Add and configure `@opennextjs/cloudflare`: `open-next.config.ts`, `wrangler.jsonc`
       with `nodejs_compat`, and the `build` / `deploy` / `preview` scripts (research R1)
-- [ ] T003 [P] Configure Tailwind CSS v4 in `src/app/globals.css` with the Arabic/Latin font
+- [x] T003 [P] Configure Tailwind CSS v4 in `src/app/globals.css` with the Arabic/Latin font
       stack and design tokens; set the base 44px touch-target sizing (Principle IV)
-- [ ] T004 [P] Add the ESLint rule banning physical `left`/`right` Tailwind utilities in favour
+- [x] T004 [P] Add the ESLint rule banning physical `left`/`right` Tailwind utilities in favour
       of logical properties, in `eslint.config.mjs` (Principle III)
-- [ ] T005 [P] Configure Vitest and Playwright with a 360px mobile project in
+- [x] T005 [P] Configure Vitest and Playwright with a 360px mobile project in
       `vitest.config.ts` and `playwright.config.ts`
-- [ ] T006 Initialize the local Supabase stack (`supabase/config.toml`) and the `db:reset` /
+- [x] T006 Initialize the local Supabase stack (`supabase/config.toml`) and the `db:reset` /
       `gen:types` npm scripts
-- [ ] T007 [P] Add `.env.example` and `src/lib/env.ts` validating environment variables at
+- [x] T007 [P] Add `.env.example` and `src/lib/env.ts` validating environment variables at
       startup with Zod
-- [ ] T008 Set up `next-intl`: `src/i18n/routing.ts` with locales `['ar','en']` defaulting to
+- [x] T008 Set up `next-intl`: `src/i18n/routing.ts` with locales `['ar','en']` defaulting to
       `ar`, and `src/middleware.ts` resolving the locale from cookie then `Accept-Language`
       (FR-001, FR-004)
-- [ ] T009 Create `src/app/[locale]/layout.tsx` setting `lang` and `dir` server-side so there is
+- [x] T009 Create `src/app/[locale]/layout.tsx` setting `lang` and `dir` server-side so there is
       no flash of wrong direction (FR-002)
-- [ ] T010 [P] Create the message dictionaries `src/i18n/messages/ar.json` and `en.json` with
+- [x] T010 [P] Create the message dictionaries `src/i18n/messages/ar.json` and `en.json` with
       the shared navigation, action and error keys
-- [ ] T011 [P] Build the language switcher component preserving the current pathname
+- [x] T011 [P] Build the language switcher component preserving the current pathname
       (`src/components/ui/LocaleSwitcher.tsx`, FR-003)
-- [ ] T012 [P] Add the GitHub Actions CI workflow running typecheck, lint and unit tests
+- [x] T012 [P] Add the GitHub Actions CI workflow running typecheck, lint and unit tests
 
-**Checkpoint**: An Arabic RTL page renders at 360px on a Cloudflare preview URL.
+**Checkpoint**: ✅ **Complete.** An Arabic right-to-left page renders at 360px, verified against
+`wrangler dev` running the real Workers bundle. Typecheck, lint, unit tests and `npm audit` are
+all clean, and 6 Playwright assertions cover direction, overflow, language switching and touch
+targets.
 
 ---
 

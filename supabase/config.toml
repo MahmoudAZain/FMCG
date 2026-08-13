@@ -1,0 +1,60 @@
+project_id = "el-gomala"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+# Local mail catcher. Nothing is ever sent in production — there is no email in
+# this system at all (FR-008).
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+# Product photos are resized to WebP in the browser before upload, so the
+# server never processes an image (research R12). This ceiling is a backstop
+# against an oversized upload, not the primary control.
+file_size_limit = "5MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+# Customers sign up with a phone number and a password. There is no SMS and no
+# email, so the phone number maps to a synthetic internal identifier on a
+# non-routable domain (research R2).
+enable_signup = true
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+# MUST stay false. Nothing can confirm a synthetic address, so signup would
+# stall forever waiting for a confirmation that can never arrive.
+enable_confirmations = false
+double_confirm_changes = false
+secure_password_change = false
+
+[auth.sms]
+# Would require a paid SMS gateway. Violates Constitution Principle V.
+enable_signup = false
+enable_confirmations = false
+
+[analytics]
+enabled = false

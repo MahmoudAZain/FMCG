@@ -1,0 +1,116 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   El-Gomala design tokens
+
+   Palette drawn from Egyptian grocery signage — the deep green of shop awnings,
+   on a warm paper ground. Amber is reserved for promotions and discounts so a
+   price reduction reads at a glance without competing with the brand green.
+   --------------------------------------------------------------------------- */
+@theme {
+  --color-paper: #f6f7f3;
+  --color-surface: #ffffff;
+  --color-surface-2: #edefe8;
+
+  --color-ink: #141b17;
+  --color-ink-2: #414b45;
+  --color-ink-3: #6e7973;
+
+  --color-rule: #dce1d7;
+  --color-rule-strong: #c3cbbe;
+
+  --color-brand: #1d6b47;
+  --color-brand-hover: #17563a;
+  --color-brand-soft: #e3efe7;
+  --color-on-brand: #ffffff;
+
+  /* Promotions and discounted prices. */
+  --color-sale: #9c5a16;
+  --color-sale-soft: #f6eddf;
+
+  --color-danger: #a32b21;
+  --color-danger-soft: #f7e7e5;
+  --color-success: #1d6b47;
+
+  --font-sans: var(--font-cairo), ui-sans-serif, system-ui, sans-serif;
+
+  /* Minimum touch target — Constitution Principle IV. Never shrink below this
+     for anything a customer taps on a phone. */
+  --spacing-touch: 2.75rem; /* 44px */
+}
+
+@layer base {
+  html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* Mobile-first: the design target is a 360px viewport. Nothing may cause
+       the page body to scroll sideways (SC-012). */
+    overflow-x: hidden;
+  }
+
+  /* Arabic numerals render in the shape the active locale expects; the stored
+     value is always locale-independent. */
+  [lang='ar'] {
+    font-feature-settings: 'liga' 1;
+  }
+
+  /* Every interactive element gets a visible focus ring. Focus order follows
+     the writing direction automatically because layout uses logical
+     properties. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Tap targets. Applied at the base layer so a component has to opt out
+     deliberately rather than remember to opt in. */
+  button,
+  [role='button'],
+  a[href],
+  input,
+  select,
+  textarea {
+    min-block-size: var(--spacing-touch);
+  }
+
+  /* Inline elements and text links are exempt — a link inside a sentence must
+     not stretch the line. */
+  p a[href],
+  li a[href],
+  span a[href] {
+    min-block-size: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Wide content — tables, code, diagrams — scrolls inside its own container
+     so the page body never does. */
+  .scroll-x {
+    overflow-x: auto;
+    max-inline-size: 100%;
+  }
+
+  /* Digits that line up in columns: prices, totals, quantities. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
