@@ -24,10 +24,10 @@ browser" a structural property instead of a rule someone has to remember.
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.7 (strict), Node.js 22 toolchain, PostgreSQL 15 (Supabase),
+**Language/Version**: TypeScript 6 (strict), Node.js 22 toolchain, PostgreSQL 15 (Supabase),
 PL/pgSQL
 
-**Primary Dependencies**: Next.js 15 (App Router, React 19) · `@opennextjs/cloudflare` ·
+**Primary Dependencies**: Next.js 15 (App Router, React 19 — pinned to 15, see research R1) · `@opennextjs/cloudflare` ·
 `@supabase/supabase-js` + `@supabase/ssr` · `next-intl` · Tailwind CSS v4 · Zod ·
 `react-hook-form` · Supabase CLI (local dev and migrations)
 
@@ -208,7 +208,7 @@ prerequisites for everything; after them, work can proceed in parallel where not
 
 | Stage | Delivers | Depends on | Demo at the end of the stage |
 |---|---|---|---|
-| **1. Foundation** | Repo, Next.js on Workers, Supabase project, i18n + RTL shell, Tailwind, CI | — | An Arabic RTL page renders at 360px on a Cloudflare URL |
+| **1. Foundation** ✅ | Repo, Next.js on Workers, Supabase config, i18n + RTL shell, Tailwind, CI | — | ✅ Done — Arabic RTL renders at 360px on the real Workers bundle |
 | **2. Data layer** | All 14 tables, enums, indexes, RLS policies, pricing and order functions, seed data, SQL tests | 1 | RLS matrix passes; `place_order` creates a correct order from `psql` |
 | **3. Storefront (US1 + US2)** 🎯 **MVP** | Register, sign in, browse, product detail, cart, checkout, place order | 2 | A real person orders on a phone, cash on delivery |
 | **4. Admin master data (US3)** | Products with photos, categories, brands, promotions, governorates, staff | 2 (parallel with 3) | Staff add a product and it appears on the storefront |

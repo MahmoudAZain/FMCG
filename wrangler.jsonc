@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "el-gomala",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-08-13",
+
+  // Required by @opennextjs/cloudflare: the adapter runs Next.js on the Node.js
+  // runtime, which the Supabase server helpers depend on (research R1).
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "observability": {
+    "enabled": true
+  },
+
+  // Scheduled work. All four fit the free-tier Cron Triggers allowance.
+  // The keep-alive is not optional: a free Supabase project pauses after seven
+  // days without an API request, which would take the shop offline after a
+  // quiet week (research R13, FR-069).
+  "triggers": {
+    "crons": [
+      "0 */6 * * *", // keep-alive — prevents free-tier database pausing
+      "0 3 * * *",   // sweep login_attempts older than 24h
+      "0 4 * * 0",   // reclaim storage objects no product_photos row references
+      "0 5 * * 0"    // weekly data export — the free tier has no backups
+    ]
+  },
+
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "http://localhost:3000"
+  }
+
+  // Secrets are set with `wrangler secret put`, never committed:
+  //   SUPABASE_SERVICE_ROLE_KEY  — bypasses RLS; server-only (FR-066)
+  //   CRON_SECRET                — shared secret for the scheduled endpoints
+}

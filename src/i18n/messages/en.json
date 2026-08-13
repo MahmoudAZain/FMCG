@@ -1,0 +1,61 @@
+{
+  "brand": {
+    "name": "El-Gomala",
+    "tagline": "Your groceries online — cash on delivery"
+  },
+  "nav": {
+    "home": "Home",
+    "categories": "Categories",
+    "offers": "Offers",
+    "search": "Search",
+    "cart": "Cart",
+    "orders": "My orders",
+    "account": "My account",
+    "login": "Sign in",
+    "register": "Create account",
+    "logout": "Sign out",
+    "admin": "Admin",
+    "skipToContent": "Skip to content"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "العربية",
+    "current": "English"
+  },
+  "actions": {
+    "addToCart": "Add to cart",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "retry": "Try again",
+    "continueShopping": "Continue shopping",
+    "checkout": "Checkout"
+  },
+  "common": {
+    "loading": "Loading…",
+    "outOfStock": "Out of stock",
+    "currency": "EGP",
+    "cashOnDelivery": "Cash on delivery",
+    "deliveryFee": "Delivery fee",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "total": "Total"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "notFound": "Page not found",
+    "notFoundBody": "The page you opened doesn't exist or has moved.",
+    "unexpected": "Something went wrong",
+    "unexpectedBody": "Our team will look into it. Try refreshing the page."
+  },
+  "home": {
+    "welcome": "Welcome to El-Gomala",
+    "intro": "Wholesale grocery prices, delivered to your door, paid in cash when it arrives.",
+    "browseCategories": "Browse categories"
+  },
+  "footer": {
+    "rights": "All rights reserved",
+    "deliveringTo": "Currently delivering in Cairo and Giza"
+  }
+}

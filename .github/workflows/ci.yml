@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Next 16 no longer runs ESLint during `next build`, so this is the gate
+      # that enforces the right-to-left rule (Constitution Principle III).
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+        env:
+          # Placeholders — the build must not require real credentials. Anything
+          # that genuinely needs Supabase belongs in an integration test.
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+
+  cloudflare:
+    name: Cloudflare Workers bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: verify
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Builds the Workers bundle without deploying. Catches adapter breakage
+      # — a missing Node compatibility flag, an unsupported API — on the pull
+      # request rather than at deploy time.
+      - name: Build Workers bundle
+        run: npm run cf:build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000

@@ -1,0 +1,61 @@
+{
+  "brand": {
+    "name": "الجملة",
+    "tagline": "بقالتك أونلاين — الدفع عند الاستلام"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "categories": "الأقسام",
+    "offers": "العروض",
+    "search": "بحث",
+    "cart": "السلة",
+    "orders": "طلباتي",
+    "account": "حسابي",
+    "login": "تسجيل الدخول",
+    "register": "حساب جديد",
+    "logout": "تسجيل الخروج",
+    "admin": "لوحة التحكم",
+    "skipToContent": "تخطَّ إلى المحتوى"
+  },
+  "language": {
+    "label": "اللغة",
+    "switchTo": "English",
+    "current": "العربية"
+  },
+  "actions": {
+    "addToCart": "أضف إلى السلة",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "retry": "حاول مرة أخرى",
+    "continueShopping": "متابعة التسوق",
+    "checkout": "إتمام الطلب"
+  },
+  "common": {
+    "loading": "جارٍ التحميل…",
+    "outOfStock": "غير متوفر",
+    "currency": "ج.م",
+    "cashOnDelivery": "الدفع عند الاستلام",
+    "deliveryFee": "رسوم التوصيل",
+    "subtotal": "الإجمالي قبل التوصيل",
+    "discount": "الخصم",
+    "total": "الإجمالي"
+  },
+  "errors": {
+    "generic": "حصل خطأ. من فضلك حاول مرة أخرى.",
+    "notFound": "الصفحة غير موجودة",
+    "notFoundBody": "الرابط اللي فتحته مش موجود أو اتغير.",
+    "unexpected": "حصل خطأ غير متوقع",
+    "unexpectedBody": "فريقنا هيراجع المشكلة. جرّب تحديث الصفحة."
+  },
+  "home": {
+    "welcome": "أهلاً بيك في الجملة",
+    "intro": "بقالة بأسعار الجملة، توصيل لحد باب البيت، والدفع كاش عند الاستلام.",
+    "browseCategories": "تصفّح الأقسام"
+  },
+  "footer": {
+    "rights": "جميع الحقوق محفوظة",
+    "deliveringTo": "بنوصّل حالياً في القاهرة والجيزة"
+  }
+}

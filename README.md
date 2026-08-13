@@ -6,17 +6,24 @@ A bilingual (Arabic-default, RTL) grocery storefront and staff admin console for
 market. Cash on delivery only, fulfilled by an in-house fleet. The site's job is to capture
 correct orders cheaply and safely.
 
-**Status**: Specification and plan complete. Implementation not yet started.
+**Status**: Stage 1 (Foundation) complete — Next.js on Cloudflare Workers with a bilingual
+Arabic-first RTL shell. Stage 2 (data layer) is next.
+
+```bash
+npm install && npm run dev     # http://localhost:3000 → /ar
+npm run cf:build && npx wrangler dev   # the real Workers bundle
+```
 
 ## Stack
 
 | Layer | Choice |
 |---|---|
-| Framework | Next.js 15 (App Router, React 19), TypeScript strict |
+| Framework | Next.js 15 (App Router, React 19), TypeScript 6 strict |
 | Hosting | Cloudflare Workers via `@opennextjs/cloudflare` |
 | Database / Auth / Storage | Supabase (Postgres 15, free tier) |
 | i18n | `next-intl` — `ar` default with full RTL, `en` secondary |
-| Styling | Tailwind CSS v4, logical properties only |
+| Styling | Tailwind CSS v4, logical properties only (enforced by lint) |
+| Testing | Vitest (unit) · Playwright at 360px in Arabic and English |
 
 ## Documents
 

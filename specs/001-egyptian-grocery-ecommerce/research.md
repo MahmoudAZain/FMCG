@@ -33,9 +33,26 @@ Assets serving the build output.
 | Static export + client-only Supabase calls | Fatal to Principle I: pricing would happen in the browser. Also loses server-rendered first paint required by SC-003. |
 | Cloudflare Pages (non-Next adapter) | Would require abandoning Next.js. |
 
-**Consequences**: Next.js version is pinned to a range the adapter supports (15.x or 16.x).
-Node.js compatibility flags must be enabled in `wrangler.jsonc`. Incremental static
-regeneration requires additional Cloudflare bindings and is deliberately not used in v1.
+**Consequences**: Node.js compatibility flags must be enabled in `wrangler.jsonc`. Incremental
+static regeneration requires additional Cloudflare bindings and is deliberately not used in v1.
+
+**Version pin — Next.js 15, not 16** *(established during Stage 1 implementation)*
+
+Next 16 renames `middleware.ts` to `proxy.ts` and runs it on the **Node.js runtime only** —
+`next build` rejects any attempt to set the runtime, with "Route segment config is not allowed
+in Proxy file. Proxy always runs on Node.js runtime." `@opennextjs/cloudflare` (1.20.x) refuses
+to bundle a Node.js middleware: "Node.js middleware is not currently supported. Consider
+switching to Edge Middleware."
+
+The two are therefore mutually exclusive today for any app with middleware, and locale
+resolution needs middleware (FR-001, FR-004). **Next 15 is pinned** — its `middleware.ts` runs
+on the edge runtime, which the adapter bundles correctly and which has been verified end to end
+against `wrangler dev`.
+
+Next 15 carries three high-severity advisories through transitive `postcss` and `sharp`. Rather
+than accept them, `package.json` lifts both with `overrides`, giving a clean `npm audit` on
+Next 15. Revisit the pin when the adapter gains Node.js middleware support; the only coupling is
+`src/middleware.ts`.
 
 ---
 
