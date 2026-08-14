@@ -71,79 +71,81 @@ before this phase passes its tests.
 
 ### Schema
 
-- [ ] T013 Migration `0001_extensions_and_enums.sql`: enable `pgcrypto` and `pg_trgm`; create
+- [x] T013 Migration `0001_extensions_and_enums.sql`: enable `pgcrypto` and `pg_trgm`; create
       the `user_role`, `unit_type`, `storage_type`, `discount_type` and `order_status` enums
-- [ ] T014 Migration `0002_profiles_and_auth.sql`: `profiles` table with the Egyptian phone
+- [x] T014 Migration `0002_profiles_and_auth.sql`: `profiles` table with the Egyptian phone
       CHECK and unique constraint, the `handle_new_user` signup trigger, and the
       `guard_profile_privileged_columns` trigger blocking self-promotion to admin
-- [ ] T015 Migration `0003_governorates_and_addresses.sql`: `governorates` and `addresses`, with `landmark`
+- [x] T015 Migration `0003_governorates_and_addresses.sql`: `governorates` and `addresses`, with `landmark`
       `NOT NULL` and the partial unique index for one default address per customer
-- [ ] T016 Migration `0004_catalog.sql`: `categories` (self-referencing, cycle-guard trigger,
+- [x] T016 Migration `0004_catalog.sql`: `categories` (self-referencing, cycle-guard trigger,
       depth cap 3), `brands`, `products` with every FR-051 attribute, and `product_photos` with
       the primary-photo and 4-photo constraints
-- [ ] T017 Migration `0005_product_costs.sql`: the isolated `product_costs` table — separate
+- [x] T017 Migration `0005_product_costs.sql`: the isolated `product_costs` table — separate
       from `products` by design (research R8, FR-063)
-- [ ] T018 Migration `0006_promotions_and_pricing.sql`: `promotions` with the single-scope check
+- [x] T018 Migration `0006_promotions_and_pricing.sql`: `promotions` with the single-scope check
       constraint, plus `effective_price()` and the `product_pricing` view (FR-027–FR-029)
-- [ ] T019 Migration `0007_orders.sql`: `orders` with the address snapshot and the
+- [x] T019 Migration `0007_orders.sql`: `orders` with the address snapshot and the
       `grand_total = subtotal - discount_total + delivery_fee` check; `order_items` with its
       line-total check; `order_status_history`; `login_attempts`; `admin_audit_log`
 
 ### Functions
 
-- [ ] T020 Migration `0008_order_functions.sql` part 1: `normalize_phone()` and
+- [x] T020 Migration `0008_order_functions.sql` part 1: `normalize_phone()` and
       `search_normalize()` — Arabic diacritic stripping and orthographic folding (research R10)
-- [ ] T021 Migration `0008` part 2: `price_cart(p_items jsonb, p_governorate_id uuid)` returning lines,
+- [x] T021 Migration `0008` part 2: `price_cart(p_items jsonb, p_governorate_id uuid)` returning lines,
       totals, fee and blocking issues (contract in
       [contracts/rpc-contracts.md](contracts/rpc-contracts.md))
-- [ ] T022 Migration `0008` part 3: `place_order(...)` — `SECURITY DEFINER`, ordered
+- [x] T022 Migration `0008` part 3: `place_order(...)` — `SECURITY DEFINER`, ordered
       `FOR UPDATE` locks, full revalidation, price snapshot, stock decrement, initial history
       row, idempotency key (FR-025, FR-037, FR-038, FR-043)
-- [ ] T023 Migration `0008` part 4: `set_order_status(...)` with the transition table, role
+- [x] T023 Migration `0008` part 4: `set_order_status(...)` with the transition table, role
       authorization, row lock, and history append (FR-045–FR-050)
-- [ ] T024 Migration `0008` part 5: `generate_order_reference()` producing `EG-YYMMDD-NNNN`
+- [x] T024 Migration `0008` part 5: `generate_order_reference()` producing `EG-YYMMDD-NNNN`
       (FR-039, research R14)
 
 ### Security
 
-- [ ] T025 Migration `0009_rls_policies.sql` part 1: `current_role_name()`, `is_staff()` and
+- [x] T025 Migration `0009_rls_policies.sql` part 1: `current_role_name()`, `is_staff()` and
       `is_admin()` — all `SECURITY DEFINER STABLE` with `SET search_path = public`
-- [ ] T026 Migration `0009` part 2: revoke baseline grants; enable RLS on all 15 tables; write
+- [x] T026 Migration `0009` part 2: revoke baseline grants; enable RLS on all 15 tables; write
       every policy from [contracts/rls-policies.md](contracts/rls-policies.md). **No INSERT or
       UPDATE policy on `orders`; no write policy of any kind on `order_status_history`**
-- [ ] T027 Migration `0010_search.sql`: the `products.search_text` generated column and its GIN
+- [x] T027 Migration `0010_search.sql`: the `products.search_text` generated column and its GIN
       trigram index (FR-019)
-- [ ] T028 Migration `0011_storage_buckets.sql`: the `product-images` bucket with public read
+- [x] T028 Migration `0011_storage_buckets.sql`: the `product-images` bucket with public read
       and admin-write storage policies
 
 ### Seed and types
 
-- [ ] T029 [P] `supabase/seed.sql`: **all 27 Egyptian governorates** bilingually, with Cairo and
+- [x] T029 [P] `supabase/seed.sql`: **all 27 Egyptian governorates** bilingually, with Cairo and
       Giza active and carrying real fees and minimums and the other 25 inactive awaiting
       activation (FR-056a); the bilingual grocery category tree; starter Egyptian brands; and the
       bootstrap admin account
-- [ ] T030 [P] Generate `src/types/database.ts` from the schema and wire `npm run gen:types`
-- [ ] T031 [P] Supabase clients: `src/lib/supabase/server.ts`, `client.ts`, and `service.ts`
+- [x] T030 [P] Generate `src/types/database.ts` from the schema and wire `npm run gen:types`
+- [x] T031 [P] Supabase clients: `src/lib/supabase/server.ts`, `client.ts`, and `service.ts`
       carrying the `server-only` guard so the service key cannot enter a client bundle (FR-066)
 
 ### Tests for the data layer ⚠️
 
 > Write these before moving on. They are the evidence that Principles I, II and VII hold.
 
-- [ ] T032 [P] `supabase/tests/pricing.test.sql` — every case in the `effective_price` contract
+- [x] T032 [P] `supabase/tests/pricing.test.sql` — every case in the `effective_price` contract
       table: windows, overlap resolution, percentage rounding, zero clamping, ancestor scope
-- [ ] T033 [P] `supabase/tests/place_order.test.sql` — happy path, crafted client prices
+- [x] T033 [P] `supabase/tests/place_order.test.sql` — happy path, crafted client prices
       ignored, stock exhaustion, minimum quantity, governorate minimum, idempotent replay, atomic
       rollback (SC-005, SC-006)
-- [ ] T034 [P] `supabase/tests/transitions.test.sql` — table-driven over every legal and illegal
+- [x] T034 [P] `supabase/tests/transitions.test.sql` — table-driven over every legal and illegal
       transition, plus the customer-cancel authorization boundary (SC-011)
-- [ ] T035 [P] `supabase/tests/rls.test.sql` — assertions 1–20 of the verification matrix,
+- [x] T035 [P] `supabase/tests/rls.test.sql` — assertions 1–20 of the verification matrix,
       run under real customer, staff and admin JWTs (SC-007, SC-008)
-- [ ] T036 `tests/integration/concurrent-order.test.ts` — two simultaneous orders for the last
+- [x] T036 `tests/integration/concurrent-order.test.ts` — two simultaneous orders for the last
       unit; exactly one succeeds, stock never negative (SC-016)
 
-**Checkpoint**: The data layer is provably correct. `place_order` produces correct orders from
-`psql`, and no client role can write a price or read a cost. User story work may now begin.
+**Checkpoint**: ✅ **Complete.** 103 SQL assertions pass across four suites, plus a concurrency
+test proving exactly one order wins the last unit. `place_order` produces correct orders and no
+client role can write a price or read a cost — verified under real `anon`, `authenticated`
+customer, staff and admin roles, never as the owner. User story work may now begin.
 
 ---
 

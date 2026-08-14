@@ -45,6 +45,47 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
           NEXT_PUBLIC_SITE_URL: http://localhost:3000
 
+  database:
+    name: Database — pricing, orders, transitions, RLS
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # A real Postgres, because the guarantees under test are RLS policies and a
+    # locking transaction. Neither can be verified against a mock.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: postgres
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install psql
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      # Applies every migration from empty. A migration that only works against
+      # an already-populated database is a broken migration.
+      - name: SQL suites
+        run: ./scripts/run-sql-tests.sh
+
+      # SC-016: two simultaneous orders for the last unit of stock.
+      - name: Concurrency
+        run: ./scripts/test-concurrency.sh
+
   cloudflare:
     name: Cloudflare Workers bundle
     runs-on: ubuntu-latest

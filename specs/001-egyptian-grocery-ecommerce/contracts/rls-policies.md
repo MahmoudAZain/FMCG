@@ -159,7 +159,7 @@ is live (FR-028, Story 3 scenario 3).
 
 ---
 
-## `product_costs` — admin only
+## `product_costs` — admin only, reached through a function
 
 ```sql
 ALTER TABLE product_costs ENABLE ROW LEVEL SECURITY;
@@ -168,9 +168,18 @@ CREATE POLICY product_costs_admin_only ON product_costs
   FOR ALL TO authenticated
   USING (is_admin()) WITH CHECK (is_admin());
 
--- No grant to anon. No grant to authenticated beyond this policy.
--- No SELECT policy for customer or staff exists.
+-- No grant to anon. No grant to authenticated. None at all.
+-- get_product_cost() / set_product_cost() are the only door, and they RAISE
+-- for a non-admin rather than returning nothing.
 ```
+
+**Why a function rather than a grant** *(established during implementation)*:
+Supabase gives every signed-in user the same database role, `authenticated`. A table-level grant
+therefore cannot distinguish an admin from a customer — grant-plus-policy would return an *empty
+set* to a customer, and an empty set is indistinguishable from "no cost recorded". Principle II
+asks for a guarantee, not an ambiguity. Revoking the grant entirely and routing admin access
+through `SECURITY DEFINER` accessors makes a customer's attempt a hard `permission denied`, and
+the accessor's own `is_admin()` check makes the function call a hard `not_authorized`.
 
 This is a separate table rather than a column on `products` precisely so that the guarantee is
 structural. A cost column would rely on every query, forever, remembering to omit it — and one
@@ -302,8 +311,8 @@ JWT for the stated role, not with the service role.
 | 12 | Customer A | `UPDATE profiles SET role = 'admin'` on own row | trigger raises `not_authorized` |
 | 13 | Customer A | `INSERT` address with B's `profile_id` | `WITH CHECK` violation |
 | 14 | Any role | `UPDATE` or `DELETE` on `order_status_history` | denied — no policy |
-| 15 | Customer A | `UPDATE products SET price = 1` | denied |
-| 16 | Staff | `UPDATE products SET price = 1` | denied — admin only |
+| 15 | Customer A | `UPDATE products SET price = 1` | **0 rows affected** — see note |
+| 16 | Staff | `UPDATE products SET price = 1` | **0 rows affected** — see note |
 | 17 | Anonymous | `SELECT` inactive product | 0 rows |
 | 18 | Anonymous | `SELECT` future-dated promotion | 0 rows |
 | 19 | Customer A | `SELECT` from `login_attempts` | permission denied |
@@ -312,6 +321,13 @@ JWT for the stated role, not with the service role.
 | 22 | Staff | Call `report_profit_by_day()` | raises `not_authorized` |
 | 23 | Customer A | Call any `report_*` function | raises `not_authorized` |
 | 24 | Staff | `SELECT` from `report_exports` | permission denied |
+
+**How RLS refuses a write** *(established during implementation)*: a `USING` clause filters the
+row out of the statement's scope, so a forbidden `UPDATE` **succeeds and changes nothing** rather
+than raising. The guarantee is "zero rows affected", not "error". This matters for the
+application: code that treats a successful `UPDATE` as proof of a change would be wrong, so
+admin actions check the affected row count rather than merely the absence of an exception. The
+test suite asserts the row count for exactly this reason.
 
 Assertions 1–8 back SC-007 and SC-008 directly; 21–24 extend SC-008 to the reporting surface, where exports serialize whatever the query returned. Assertions 9–11 are what make Principle I
 enforceable rather than aspirational: even with a valid session and a crafted request, there is

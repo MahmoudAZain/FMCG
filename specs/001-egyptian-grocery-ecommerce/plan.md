@@ -209,7 +209,7 @@ prerequisites for everything; after them, work can proceed in parallel where not
 | Stage | Delivers | Depends on | Demo at the end of the stage |
 |---|---|---|---|
 | **1. Foundation** ✅ | Repo, Next.js on Workers, Supabase config, i18n + RTL shell, Tailwind, CI | — | ✅ Done — Arabic RTL renders at 360px on the real Workers bundle |
-| **2. Data layer** | All 14 tables, enums, indexes, RLS policies, pricing and order functions, seed data, SQL tests | 1 | RLS matrix passes; `place_order` creates a correct order from `psql` |
+| **2. Data layer** ✅ | All 15 tables, enums, indexes, RLS policies, pricing and order functions, seed data, SQL tests | 1 | ✅ Done — 103 assertions green, plus the last-unit concurrency test |
 | **3. Storefront (US1 + US2)** 🎯 **MVP** | Register, sign in, browse, product detail, cart, checkout, place order | 2 | A real person orders on a phone, cash on delivery |
 | **4. Admin master data (US3)** | Products with photos, categories, brands, promotions, governorates, staff | 2 (parallel with 3) | Staff add a product and it appears on the storefront |
 | **5. Order operations (US4 + US5)** | Staff queue and transitions; customer history, tracking, self-cancel | 3, 4 | An order runs submitted → delivered with a full audit trail |
