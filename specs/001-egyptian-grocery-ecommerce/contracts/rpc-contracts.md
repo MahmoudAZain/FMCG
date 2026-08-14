@@ -262,6 +262,25 @@ field present in the payload is discarded rather than validated (FR-026).
 
 ---
 
+## `get_product_cost(p_product_id uuid)` / `set_product_cost(p_product_id, p_cost_price, p_supplier)`
+
+`SECURITY DEFINER`. The only route to cost data.
+
+`product_costs` has no grant for `anon` or `authenticated`, so a direct query is
+`permission denied` for everyone including admins; these two functions are the door. Both check
+`is_admin()` and **raise `not_authorized`** otherwise — an empty result would be
+indistinguishable from "no cost recorded" (FR-063, SC-008).
+
+| Case | Expectation |
+|---|---|
+| Customer `SELECT * FROM product_costs` | `permission denied` |
+| Staff `SELECT * FROM product_costs` | `permission denied` |
+| Customer calls `get_product_cost` | raises `not_authorized` |
+| Staff calls `get_product_cost` | raises `not_authorized` |
+| Admin calls `get_product_cost` | returns the cost |
+
+---
+
 ## `register_customer(...)` — Server Action, not RPC
 
 Registration spans Supabase Auth and the `profiles` table, so it runs as a Server Action using

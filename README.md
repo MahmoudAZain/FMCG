@@ -6,12 +6,15 @@ A bilingual (Arabic-default, RTL) grocery storefront and staff admin console for
 market. Cash on delivery only, fulfilled by an in-house fleet. The site's job is to capture
 correct orders cheaply and safely.
 
-**Status**: Stage 1 (Foundation) complete — Next.js on Cloudflare Workers with a bilingual
-Arabic-first RTL shell. Stage 2 (data layer) is next.
+**Status**: Stages 1–2 complete — Next.js on Cloudflare Workers with a bilingual Arabic-first
+RTL shell, and the full data layer with 103 passing SQL assertions. Stage 3 (storefront) is next.
 
 ```bash
-npm install && npm run dev     # http://localhost:3000 → /ar
-npm run cf:build && npx wrangler dev   # the real Workers bundle
+npm install && npm run dev              # http://localhost:3000 → /ar
+npm run cf:build && npx wrangler dev    # the real Workers bundle
+supabase start && supabase db reset     # schema + seed
+./scripts/run-sql-tests.sh              # pricing, orders, transitions, RLS
+./scripts/test-concurrency.sh           # two orders race for the last unit
 ```
 
 ## Stack
@@ -67,8 +70,8 @@ Contracts: [RPC functions](specs/001-egyptian-grocery-ecommerce/contracts/rpc-co
 
 | Stage | Delivers |
 |---|---|
-| 1. Foundation | Next.js on Workers, Supabase project, RTL shell, CI |
-| 2. Data layer | 15 tables, RLS, pricing and order functions, tests |
+| 1. Foundation ✅ | Next.js on Workers, Supabase project, RTL shell, CI |
+| 2. Data layer ✅ | 15 tables, RLS, pricing and order functions, tests |
 | 3. Storefront 🎯 | Register, browse, cart, checkout — **MVP, real orders** |
 | 4. Admin | Products, categories, brands, promotions, governorates |
 | 5. Order operations | Staff queue and transitions; customer tracking |

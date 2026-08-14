@@ -200,7 +200,7 @@ Every attribute the business listed in FR-051.
 | `min_order_qty` | `integer` | NOT NULL, DEFAULT 1, CHECK `> 0` | FR-032 |
 | `storage` | `storage_type` | NOT NULL, DEFAULT `'ambient'` | FR-052 |
 | `is_active` | `boolean` | NOT NULL, DEFAULT `true` | |
-| `search_text` | `text` | GENERATED ALWAYS AS `search_normalize(...)` STORED | Research R10 |
+| `search_text` | `text` | GENERATED ALWAYS AS `search_normalize(...)` STORED | Product's own text only — see note |
 | `created_at` / `updated_at` | `timestamptz` | NOT NULL DEFAULT `now()` | |
 
 **Validation rules**
@@ -219,6 +219,11 @@ Every attribute the business listed in FR-051.
 - `(category_id) WHERE is_active` — the category listing query.
 - `(brand_id) WHERE is_active`.
 - GIN `(search_text gin_trgm_ops)` — FR-019, SC-004.
+
+**Brand names are not in the generated column** *(established during implementation)*: a
+generated column may only reference its own row, so it cannot reach the `brands` table.
+`search_products()` joins brands and matches against a second trigram index instead — which also
+means renaming a brand needs no backfill.
 - `UNIQUE(sku)`, `UNIQUE(barcode)`, `UNIQUE(slug)`.
 
 ---
