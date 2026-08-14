@@ -240,6 +240,22 @@ select public.assert('rls', '17 an anonymous visitor cannot see an inactive prod
 select public.assert('rls', 'an anonymous visitor can see an active product',
   (select count(*) from public.products where id = 'eeee0000-0000-4000-8000-00000000000a') = 1);
 
+-- The view must hide what the table hides. A view runs with its OWNER's rights
+-- unless security_invoker is set, and this one is owned by a role that bypasses
+-- RLS — so without migration 0012 the outer scan sees every product, active or
+-- not (migration 0012 explains why it appeared to work anyway).
+select public.assert('rls', '17b the pricing view hides an inactive product too',
+  (select count(*) from public.product_pricing
+   where product_id = 'eeee0000-0000-4000-8000-00000000000b') = 0);
+
+select public.assert('rls', 'the pricing view still shows an active product',
+  (select count(*) from public.product_pricing
+   where product_id = 'eeee0000-0000-4000-8000-00000000000a') = 1);
+
+select public.assert('rls', 'the pricing view runs as the caller, not its owner',
+  (select 'security_invoker=true' = any(c.reloptions)
+   from pg_class c where c.relname = 'product_pricing'));
+
 -- The seed ships live promotions, which an anonymous visitor SHOULD see. What
 -- must stay invisible is the one that has not started yet (FR-028).
 select public.assert('rls', '18 an anonymous visitor cannot see a future promotion',

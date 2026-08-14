@@ -5,7 +5,7 @@ import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Cairo } from 'next/font/google';
 import { routing, directionOf, type Locale } from '@/i18n/routing';
-import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher';
+import { SiteHeader } from '@/components/layout/SiteHeader';
 import '../globals.css';
 
 /**
@@ -58,6 +58,8 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   const t = await getTranslations('nav');
+  const tFooter = await getTranslations('footer');
+  const tBrand = await getTranslations('brand');
   const dir = directionOf(locale as Locale);
 
   return (
@@ -73,16 +75,18 @@ export default async function LocaleLayout({
             {t('skipToContent')}
           </a>
 
-          <header className="border-b border-rule bg-surface">
-            <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-              <span className="text-lg font-bold text-brand">{t('home')}</span>
-              <LocaleSwitcher />
-            </div>
-          </header>
+          <SiteHeader />
 
           <main id="main" className="mx-auto max-w-5xl px-4 py-8">
             {children}
           </main>
+
+          <footer className="mt-12 border-t border-rule bg-surface">
+            <div className="mx-auto flex max-w-5xl flex-col gap-1 px-4 py-6 text-sm text-ink-3">
+              <p>{tFooter('deliveringTo')}</p>
+              <p>© {new Date().getFullYear()} — {tBrand('name')}. {tFooter('rights')}</p>
+            </div>
+          </footer>
         </NextIntlClientProvider>
       </body>
     </html>
