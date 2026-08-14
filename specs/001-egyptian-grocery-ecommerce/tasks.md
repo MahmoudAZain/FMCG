@@ -159,68 +159,71 @@ totals.
 
 ### Shared primitives
 
-- [ ] T037 [P] `src/lib/phone.ts` — Egyptian normalization mirroring the SQL `normalize_phone`,
+- [x] T037 [P] `src/lib/phone.ts` — Egyptian normalization mirroring the SQL `normalize_phone`,
       with unit tests over all accepted notations (FR-009)
-- [ ] T038 [P] `src/lib/money.ts` — piastre formatting via `Intl.NumberFormat` for `ar-EG` and
+- [x] T038 [P] `src/lib/money.ts` — piastre formatting via `Intl.NumberFormat` for `ar-EG` and
       `en-EG`. **Formatting only; no arithmetic on the client** (research R5)
-- [ ] T039 [P] `src/lib/validation/` — Zod schemas shared between client and server, per the
+- [x] T039 [P] `src/lib/validation/` — Zod schemas shared between client and server, per the
       validation contract table
-- [ ] T040 [P] `src/components/ui/` — Button, Input, Select, Sheet, Dialog, QtyStepper with
+- [x] T040 [P] `src/components/ui/` — Button, Input, Select, Sheet, Dialog, QtyStepper with
       44px targets and logical properties throughout
 
 ### Authentication (US2)
 
-- [ ] T041 [US2] `src/lib/actions/auth.ts` → `registerCustomer`: normalize, validate, create the
+- [x] T041 [US2] `src/lib/actions/auth.ts` → `registerCustomer`: normalize, validate, create the
       Auth user with the synthetic identifier, insert profile and default address, compensating
       delete on partial failure (FR-007, FR-008, FR-011, research R2)
-- [ ] T042 [US2] `loginCustomer` in the same module: rate-limit check, sign-in, attempt
+- [x] T042 [US2] `loginCustomer` in the same module: rate-limit check, sign-in, attempt
       recording, identical failure message for unknown number and wrong password (FR-012, FR-014)
-- [ ] T043 [US2] `logout` action and session helpers
-- [ ] T044 [P] [US2] `src/app/[locale]/register/page.tsx` — full name, phone, governorate, address,
+- [x] T043 [US2] `logout` action and session helpers
+- [x] T044 [P] [US2] `src/app/[locale]/register/page.tsx` — full name, phone, governorate, address,
       **required landmark**, password (FR-007)
-- [ ] T045 [P] [US2] `src/app/[locale]/login/page.tsx` — phone and password
+- [x] T045 [P] [US2] `src/app/[locale]/login/page.tsx` — phone and password
 - [ ] T046 [US2] `src/app/[locale]/account/` — profile and address management, add/edit/delete
       and set-default (FR-015)
-- [ ] T047 [US2] `tests/integration/auth.test.ts` — notation equivalence, duplicate refusal,
+- [x] T047 [US2] `tests/integration/auth.test.ts` — notation equivalence, duplicate refusal,
       rate limiting, blank-landmark rejection
 
 ### Catalog browsing (US1)
 
-- [ ] T048 [P] [US1] `src/components/catalog/ProductCard.tsx` — image, bilingual name, unit,
+- [x] T048 [P] [US1] `src/components/catalog/ProductCard.tsx` — image, bilingual name, unit,
       pack size, price
-- [ ] T049 [P] [US1] `src/components/catalog/PriceTag.tsx` — original struck through beside the
+- [x] T049 [P] [US1] `src/components/catalog/PriceTag.tsx` — original struck through beside the
       reduced price when discounted (FR-021, Story 1 scenario 2)
-- [ ] T050 [P] [US1] `src/components/catalog/CategoryNav.tsx` — nested category navigation
-- [ ] T051 [US1] `src/app/[locale]/page.tsx` — home: categories and promoted products
-- [ ] T052 [US1] `src/app/[locale]/c/[...slug]/page.tsx` — category listing joined to
+- [x] T050 [P] [US1] `src/components/catalog/CategoryNav.tsx` — nested category navigation
+- [x] T051 [US1] `src/app/[locale]/page.tsx` — home: categories and promoted products
+- [x] T052 [US1] `src/app/[locale]/c/[...slug]/page.tsx` — category listing joined to
       `product_pricing`, paginated (FR-017, FR-018, FR-023)
-- [ ] T053 [US1] `src/app/[locale]/p/[slug]/page.tsx` — product detail: photo gallery, both
+- [x] T053 [US1] `src/app/[locale]/p/[slug]/page.tsx` — product detail: photo gallery, both
       languages with cross-language fallback for optional descriptions, out-of-stock state
       (FR-021, FR-022)
 
 ### Cart and checkout (US1)
 
-- [ ] T054 [US1] `src/lib/cart-store.ts` — `localStorage` holding `{product_id, qty}` **only**,
+- [x] T054 [US1] `src/lib/cart-store.ts` — `localStorage` holding `{product_id, qty}` **only**,
       never prices (research R11, FR-024)
-- [ ] T055 [US1] `src/lib/actions/cart.ts` → `previewCart` calling `price_cart` (FR-025)
-- [ ] T056 [US1] `src/components/cart/CartSheet.tsx` and `CartSummary.tsx` — every displayed
+- [x] T055 [US1] `src/lib/actions/cart.ts` → `previewCart` calling `price_cart` (FR-025)
+- [x] T056 [US1] `src/components/cart/CartSheet.tsx` and `CartSummary.tsx` — every displayed
       amount comes from the server
-- [ ] T057 [US1] `src/app/[locale]/cart/page.tsx` — quantities, removal, per-line issue
+- [x] T057 [US1] `src/app/[locale]/cart/page.tsx` — quantities, removal, per-line issue
       messages, governorate selector updating the fee (Story 1 scenario 4)
-- [ ] T058 [US1] `src/app/[locale]/checkout/page.tsx` — address selection, final server totals,
+- [x] T058 [US1] `src/app/[locale]/checkout/page.tsx` — address selection, final server totals,
       minimum-order shortfall message, idempotency key generated on mount (FR-030, FR-031)
-- [ ] T059 [US1] `src/lib/actions/orders.ts` → `placeOrder` calling `place_order`, sending only
+- [x] T059 [US1] `src/lib/actions/orders.ts` → `placeOrder` calling `place_order`, sending only
       identifiers and quantities, mapping every typed error to a localized message
-- [ ] T060 [US1] Change-notice UI: surface any price, discount, fee or availability difference
+- [x] T060 [US1] Change-notice UI: surface any price, discount, fee or availability difference
       since the cart was built, before commitment (FR-035, Story 1 edge cases)
-- [ ] T061 [US1] Order confirmation screen — reference, lines, fee, grand total, and an explicit
+- [x] T061 [US1] Order confirmation screen — reference, lines, fee, grand total, and an explicit
       cash-on-delivery statement (FR-042, Story 1 scenario 9)
-- [ ] T062 [US1] `tests/e2e/order-journey.spec.ts` — Playwright, Arabic, 360px: register →
+- [x] T062 [US1] `tests/e2e/order-journey.spec.ts` — Playwright, Arabic, 360px: register →
       browse → cart → order, asserting no horizontal overflow and cart survival across a
       language switch (SC-001, SC-012, SC-013)
 
-**Checkpoint**: 🎯 **MVP.** A real customer can place a real cash-on-delivery order from a phone.
-Staff can work the queue directly from the database until Phase 5 lands.
+**Checkpoint**: 🎯 **MVP surface built.** Register, browse, add to cart, check out and see the
+order confirmation — every screen present, every server action calling the pricing and order
+functions verified in Stage 2. Ready for a live Supabase environment to run the end-to-end journey
+against. T046 (account/address management) is intentionally deferred — the placement path uses the
+first address created at registration.
 
 ---
 

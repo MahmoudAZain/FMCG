@@ -86,6 +86,11 @@ jobs:
       - name: Concurrency
         run: ./scripts/test-concurrency.sh
 
+      # Phone normalization exists in both TypeScript and SQL. Duplication is
+      # deliberate; divergence would let one person register twice.
+      - name: Phone normalization parity
+        run: ./scripts/test-phone-parity.sh
+
   cloudflare:
     name: Cloudflare Workers bundle
     runs-on: ubuntu-latest

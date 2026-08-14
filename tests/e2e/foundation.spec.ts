@@ -26,7 +26,12 @@ test('English renders left-to-right', async ({ page }) => {
   await expect(html).toHaveAttribute('dir', 'ltr');
 });
 
-for (const path of ['/ar', '/en']) {
+// Every storefront route, in both directions. SC-012 is not a property of the
+// home page — it is a property of the site, and each new screen is a chance to
+// break it.
+const ROUTES = ['/ar', '/en', '/ar/cart', '/en/cart', '/ar/login', '/ar/register', '/en/register'];
+
+for (const path of ROUTES) {
   test(`${path} does not scroll sideways at 360px`, async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 780 });
     await page.goto(path);
@@ -41,10 +46,20 @@ for (const path of ['/ar', '/en']) {
 }
 
 test('switching language keeps the visitor on the same page', async ({ page }) => {
-  await page.goto('/ar');
-  await page.getByRole('button', { name: /language|اللغة/i }).click();
+  await page.goto('/ar/register');
 
-  await expect(page).toHaveURL(/\/en$/);
+  // Assert the link's href in the rendered HTML rather than clicking through:
+  // the reason a link and not a button is that it must work on first paint,
+  // and the href being right IS the mechanism. Clicking additionally is a
+  // separate check.
+  // The switcher on an Arabic page carries an Arabic aria-label and English
+  // link text (it points AT the other language). Matching by href is what
+  // actually identifies it.
+  const switcher = page.locator('a[href="/en/register"]').first();
+  await expect(switcher).toBeVisible();
+
+  await switcher.click();
+  await expect(page).toHaveURL(/\/en\/register$/);
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
 });
 
